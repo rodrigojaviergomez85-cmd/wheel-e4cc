@@ -1,5 +1,5 @@
 export type DayData = {
-  level: "b1";
+  level: "b1" | "b2";
   week: 1 | 2 | 3 | 4;
   day: 1 | 2 | 3 | 4 | 5;
   title: string; // base "Automatic Fluency" question, shown in header
@@ -12,7 +12,7 @@ export type DayData = {
 export const LEVELS = [
   { id: "b0", label: "BASIC 0", enabled: false },
   { id: "b1", label: "BASIC 1", enabled: true },
-  { id: "b2", label: "BASIC 2", enabled: false },
+  { id: "b2", label: "BASIC 2", enabled: true },
   { id: "b3", label: "BASIC 3", enabled: false },
   { id: "b4", label: "BASIC 4", enabled: false },
   { id: "int", label: "INTERMEDIATE", enabled: false },
@@ -376,6 +376,356 @@ export const DAYS: DayData[] = [
     "day": 5,
     "enabled": false,
     "title": "Evaluation",
+    "grammar": "",
+    "disabledReason": "Evaluation day — no wheel",
+    "questions": []
+  },
+  {
+    "level": "b2",
+    "week": 1,
+    "day": 1,
+    "enabled": false,
+    "title": "Coaching Day",
+    "grammar": "",
+    "disabledReason": "Coaching Day — no wheel",
+    "questions": []
+  },
+  {
+    "level": "b2",
+    "week": 1,
+    "day": 2,
+    "enabled": true,
+    "title": "What is your daily routine? What do you usually do?",
+    "grammar": "Simple Present · 3rd person rules",
+    "questions": [
+      "What is your daily routine? What do you usually do?",
+      "What do you do in the morning before class?",
+      "What does your mom do every day?",
+      "What do you usually do on Saturdays?",
+      "What does your best friend do in his or her free time?",
+      "Crazy story: You are a vampire. What is your daily routine?",
+      "Crazy story: Your dog goes to work every day. What does he do?",
+      "Crazy story: Describe the daily routine of a pirate.",
+      "Crazy story: Santa Claus lives in El Salvador. What does he do every day in July?",
+      "Crazy story: You are the president. What do you usually do every day?"
+    ]
+  },
+  {
+    "level": "b2",
+    "week": 1,
+    "day": 3,
+    "enabled": true,
+    "title": "What is your daily routine? What do you usually do?",
+    "grammar": "Simple Present · Yes/No questions",
+    "questions": [
+      "What is your daily routine? Do you wake up early?",
+      "Do you drink coffee every morning? What do you usually drink?",
+      "Does your mom cook every day? What does she cook?",
+      "Do you study English every day? When?",
+      "Does your best friend work? What does he or she do?",
+      "Crazy story: Do you sleep in a tree every night? Describe your crazy daily routine.",
+      "Crazy story: Does your cat cook breakfast for you? What does it do every morning?",
+      "Crazy story: You live with a monster. Does it eat pizza every day? What does it do?",
+      "Crazy story: Does your coach drive a tractor to class? What does he or she do every day?",
+      "Crazy story: Does a robot do your homework? Describe its daily routine."
+    ]
+  },
+  {
+    "level": "b2",
+    "week": 1,
+    "day": 4,
+    "enabled": true,
+    "title": "What is your daily routine? What do you usually do?",
+    "grammar": "Simple Present · Wh- questions",
+    "questions": [
+      "What is your daily routine? What do you usually do?",
+      "Where do you usually eat lunch? What do you eat?",
+      "What time do you wake up and what time do you go to bed?",
+      "Who do you live with? What do they do every day?",
+      "Why do you study English? When do you study?",
+      "Crazy story: You live on a cloud. Where do you sleep? What do you eat?",
+      "Crazy story: A giant lives in your house. What does he do every day? Where does he sleep?",
+      "Crazy story: You are 300 years old. What do you do every day? Why?",
+      "Crazy story: Your grandmother is a secret agent. Where does she work? What does she do?",
+      "Crazy story: You work at a zoo with the lions. What do you do every day?"
+    ]
+  },
+  {
+    "level": "b2",
+    "week": 1,
+    "day": 5,
+    "enabled": true,
+    "title": "What is your daily routine? What do you usually do?",
+    "grammar": "How often questions",
+    "questions": [
+      "What is your daily routine? How often do you exercise?",
+      "How often do you eat pizza? Why?",
+      "How often does your mom go to the supermarket?",
+      "How often do you visit your grandparents? What do you do with them?",
+      "How often do you practice English? Explain why.",
+      "Crazy story: You are a mermaid. How often do you go to the beach? What do you do there?",
+      "Crazy story: Your dog drives a car. How often does he drive? Where does he go?",
+      "Crazy story: A ghost cleans your house. How often does it clean? What does it do?",
+      "Crazy story: You eat 20 pupusas every day. How often do you go to the doctor?",
+      "Crazy story: Your coach sleeps in the classroom. How often does he or she go home?"
+    ]
+  },
+  {
+    "level": "b2",
+    "week": 2,
+    "day": 1,
+    "enabled": true,
+    "title": "Crazy Story — What does he do?",
+    "grammar": "Simple Present 3rd person · Describing people",
+    "questions": [
+      "What does your mom do every day?",
+      "What does your best friend do in his or her free time?",
+      "Describe someone you admire. What does he or she do every day?",
+      "What does your coach do after class?",
+      "What does your favorite singer do every day?",
+      "Crazy story: Spider-Man works in a call center. What does he do every day?",
+      "Crazy story: Your grandfather is an astronaut. What does he do every day in space?",
+      "Crazy story: A chicken is the manager of your school. What does she do every day?",
+      "Crazy story: Your neighbor is a dragon. What does he eat? What does he do at night?",
+      "Crazy story: The president of El Salvador is a baby. What does he do every day?"
+    ]
+  },
+  {
+    "level": "b2",
+    "week": 2,
+    "day": 2,
+    "enabled": true,
+    "title": "Crazy Story — Do / Does",
+    "grammar": "Simple Present · DO / DOES",
+    "questions": [
+      "Does your mom work? What does she do?",
+      "Do you cook at home? Who cooks in your house?",
+      "Does your best friend study English? What does he or she study?",
+      "Do you watch TV every day? What do you watch?",
+      "Does your coach like coffee? What does he or she drink?",
+      "Crazy story: Does your cat speak English? What does it say every day?",
+      "Crazy story: Does your dad fly to work? How does he go to work?",
+      "Crazy story: Does Batman eat pupusas for breakfast? What does he eat?",
+      "Crazy story: Does your teacher live in a castle? Where does she live? What does she do there?",
+      "Crazy story: Do aliens visit your house every night? What do they do?"
+    ]
+  },
+  {
+    "level": "b2",
+    "week": 2,
+    "day": 3,
+    "enabled": true,
+    "title": "Crazy Story — How often / frequency adverbs",
+    "grammar": "Frequency adverbs · How often · Compare people",
+    "questions": [
+      "What do you always do in the morning? What do you never do?",
+      "How often does your mom cook? What does she usually cook?",
+      "What does your best friend usually do on weekends?",
+      "How often do you go to the gym? Why?",
+      "Compare your routine with your mom's routine. Who wakes up earlier?",
+      "Crazy story: A monkey always does your homework. How often does it make mistakes?",
+      "Crazy story: Your coach never sleeps. What does he or she usually do at night?",
+      "Crazy story: Compare a vampire's routine with a zombie's routine. Who eats more?",
+      "Crazy story: Your dog sometimes cooks dinner. What does he usually cook?",
+      "Crazy story: An elephant always takes the bus with you. How often does it pay?"
+    ]
+  },
+  {
+    "level": "b2",
+    "week": 2,
+    "day": 4,
+    "enabled": true,
+    "title": "Crazy Story — Simple Present review",
+    "grammar": "Simple Present review (Book Quiz day)",
+    "questions": [
+      "What is your daily routine? What do you usually do?",
+      "What does your family do on Sundays?",
+      "Describe someone you admire: what does he or she do?",
+      "What do you do at work or at school every day?",
+      "What does your coach always say in class?",
+      "Crazy story: Describe the daily routine of a shark that works in an office.",
+      "Crazy story: Your mom is a rock star. What does she do every day?",
+      "Crazy story: You are a cloud. What do you do every day? Where do you go?",
+      "Crazy story: Describe a day in the life of your shoes.",
+      "Crazy story: A superhero lives in your bathroom. What does he do every day?"
+    ]
+  },
+  {
+    "level": "b2",
+    "week": 2,
+    "day": 5,
+    "enabled": false,
+    "title": "Deep Level Evaluation",
+    "grammar": "",
+    "disabledReason": "Evaluation day — no wheel",
+    "questions": []
+  },
+  {
+    "level": "b2",
+    "week": 3,
+    "day": 1,
+    "enabled": true,
+    "title": "How do you install TikTok?",
+    "grammar": "Present Progressive (introduction) · Explain a process",
+    "questions": [
+      "How do you install TikTok? Explain step by step.",
+      "How do you make coffee? Explain the steps.",
+      "How do you send a message on WhatsApp?",
+      "How do you make pupusas? Explain step by step.",
+      "What are you doing right now? What is your family doing?",
+      "Crazy story: How do you teach a cat to use TikTok? Explain step by step.",
+      "Crazy story: How do you install a swimming pool in your bedroom?",
+      "Crazy story: A monkey is using your phone right now. What is it doing?",
+      "Crazy story: How do you make a sandwich for a giant? Explain the steps.",
+      "Crazy story: Your coach is dancing on the table right now. What is he or she doing and why?"
+    ]
+  },
+  {
+    "level": "b2",
+    "week": 3,
+    "day": 2,
+    "enabled": true,
+    "title": "How do you install TikTok?",
+    "grammar": "Present Progressive · Yes/No questions",
+    "questions": [
+      "How do you install TikTok? Explain the steps.",
+      "Are you studying English right now? What are you doing?",
+      "Is your mom cooking right now? What is she doing?",
+      "Are your friends working right now? What are they doing?",
+      "Is it raining right now? What is happening outside?",
+      "Crazy story: Is a lion sleeping in your bed right now? What is it doing?",
+      "Crazy story: Is your grandmother driving a motorcycle right now? Where is she going?",
+      "Crazy story: Are aliens eating in your kitchen? What are they eating?",
+      "Crazy story: Is your dog installing TikTok right now? What is he doing with the phone?",
+      "Crazy story: Is your coach swimming in the classroom? What is he or she doing?"
+    ]
+  },
+  {
+    "level": "b2",
+    "week": 3,
+    "day": 3,
+    "enabled": true,
+    "title": "How do you install TikTok?",
+    "grammar": "Present Progressive · Wh- questions",
+    "questions": [
+      "How do you install TikTok? Explain step by step.",
+      "What are you doing right now? Why?",
+      "Where is your mom right now? What is she doing?",
+      "What are your classmates doing right now?",
+      "Who is talking right now? What is he or she saying?",
+      "Crazy story: What is Superman doing in your kitchen right now?",
+      "Crazy story: Why is a cow sitting in your car? What is it doing?",
+      "Crazy story: Where is your coach going on a dinosaur right now? Why?",
+      "Crazy story: What are the fish doing in the sky right now?",
+      "Crazy story: What is your phone doing while you are sleeping?"
+    ]
+  },
+  {
+    "level": "b2",
+    "week": 3,
+    "day": 4,
+    "enabled": true,
+    "title": "How do you install TikTok?",
+    "grammar": "Future vs. Simple Present vs. Present Progressive",
+    "questions": [
+      "How do you install TikTok? Explain step by step.",
+      "What do you usually do at night? What are you doing right now? What are you going to do tomorrow?",
+      "What does your mom do every day? What is she doing right now?",
+      "What are you doing right now, and what are you going to do after class?",
+      "Compare: what do you do on Mondays? What are you doing today?",
+      "Crazy story: A robot lives with you. What does it do every day? What is it doing right now? What is it going to do tomorrow?",
+      "Crazy story: Your cat is a chef. What does it cook every day? What is it cooking right now?",
+      "Crazy story: You are a pirate. What do you usually do? What are you doing right now? What are you going to do tonight?",
+      "Crazy story: Your coach is a superhero. What does he or she do every day? What is he or she doing right now?",
+      "Crazy story: Describe a dinosaur's day: what does it usually do, what is it doing now, what is it going to do tomorrow?"
+    ]
+  },
+  {
+    "level": "b2",
+    "week": 3,
+    "day": 5,
+    "enabled": false,
+    "title": "Movie Evaluation",
+    "grammar": "",
+    "disabledReason": "Evaluation day — no wheel",
+    "questions": []
+  },
+  {
+    "level": "b2",
+    "week": 4,
+    "day": 1,
+    "enabled": true,
+    "title": "What does Cristiano Ronaldo do every day? What is he doing right now? What is he going to do when he retires?",
+    "grammar": "Simple Present Wh- questions · Mixed tenses",
+    "questions": [
+      "What does Cristiano Ronaldo do every day? What is he doing right now? What is he going to do when he retires?",
+      "What does your favorite singer do every day? What is he or she doing right now?",
+      "What does your mom do every day? What is she doing right now? What is she going to do tomorrow?",
+      "What do you do every day? What are you doing right now? What are you going to do when you finish English?",
+      "What does your best friend do on weekends? What is he or she going to do next weekend?",
+      "Crazy story: Messi is a chef. What does he cook every day? What is he cooking right now? What is he going to cook tomorrow?",
+      "Crazy story: Your dog is a famous soccer player. What does he do every day? What is he doing right now?",
+      "Crazy story: Shakira is your English coach. What does she do in class? What is she doing right now?",
+      "Crazy story: A dinosaur plays for your favorite team. What does he do every day? What is he going to do when he retires?",
+      "Crazy story: Your grandmother is a famous boxer. What does she do every day? What is she doing right now?"
+    ]
+  },
+  {
+    "level": "b2",
+    "week": 4,
+    "day": 2,
+    "enabled": true,
+    "title": "What does Cristiano Ronaldo do every day? What is he doing right now? What is he going to do when he retires?",
+    "grammar": "Present Progressive Wh- questions · Mixed tenses",
+    "questions": [
+      "What does Cristiano Ronaldo do every day? What is he doing right now? What is he going to do when he retires?",
+      "What is your family doing right now? What do they usually do at this time?",
+      "What are your classmates doing right now? What are they going to do after class?",
+      "What does your coach do every day? What is he or she doing right now?",
+      "What are you doing right now? What do you usually do at this time?",
+      "Crazy story: Your son or daughter is on the moon. Call them: what are they doing? What do they do every day there?",
+      "Crazy story: A giant is walking in San Salvador right now. What is he doing? What is he going to do?",
+      "Crazy story: Your cat has a new job. What does it do? What is it doing right now?",
+      "Crazy story: Batman is cooking in your kitchen. What is he cooking? What does he usually cook?",
+      "Crazy story: Your shoes are running without you. Where are they going? What are they doing?"
+    ]
+  },
+  {
+    "level": "b2",
+    "week": 4,
+    "day": 3,
+    "enabled": true,
+    "title": "What does Cristiano Ronaldo do every day? What is he doing right now? What is he going to do when he retires?",
+    "grammar": "Simple Future · Simple Present · Present Progressive · Explain a process",
+    "questions": [
+      "What does Cristiano Ronaldo do every day? What is he doing right now? What is he going to do when he retires?",
+      "What do you do every day, what are you doing now, and what are you going to do this weekend?",
+      "What does your mom usually do? What is she doing right now? What is she going to do on Sunday?",
+      "Explain a process: how do you make a sandwich? What are you going to eat tonight?",
+      "What does your best friend do every day? What is he or she going to do next year?",
+      "Crazy story: You are a famous chef for monsters. What do you cook every day? What are you cooking now? What are you going to cook tomorrow?",
+      "Crazy story: Your coach is an astronaut. What does he or she do in space? What is he or she doing right now? What is he or she going to do next year?",
+      "Crazy story: A monkey works at your call center. What does he do every day? What is he doing right now? What is he going to do when he retires?",
+      "Crazy story: Describe a day of a zombie: what does he usually do, what is he doing now, what is he going to do tonight?",
+      "Crazy story: Your phone is alive. What does it do every day? What is it doing right now? What is it going to do when you sleep?"
+    ]
+  },
+  {
+    "level": "b2",
+    "week": 4,
+    "day": 4,
+    "enabled": false,
+    "title": "Monthly Evaluation",
+    "grammar": "",
+    "disabledReason": "Evaluation day — no wheel",
+    "questions": []
+  },
+  {
+    "level": "b2",
+    "week": 4,
+    "day": 5,
+    "enabled": false,
+    "title": "Monthly Evaluation",
     "grammar": "",
     "disabledReason": "Evaluation day — no wheel",
     "questions": []
