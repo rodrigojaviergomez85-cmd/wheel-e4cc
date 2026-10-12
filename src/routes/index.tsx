@@ -40,7 +40,7 @@ function Selector() {
       <section className="space-y-8 rounded-3xl bg-card p-6 shadow-xl md:p-8">
         <div>
           <h2 className="mb-3 text-xl font-semibold">Level</h2>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
             {LEVELS.map((l) => (
               <button key={l.id} disabled={!l.enabled} onClick={() => setLevel(l.id)} className={cn(chip, level === l.id ? on : off)}>
                 {l.label}
