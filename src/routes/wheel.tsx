@@ -8,9 +8,9 @@ type Search = { level: string; week: number; day: number };
 
 export const Route = createFileRoute("/wheel")({
   validateSearch: (s: Record<string, unknown>): Search => ({
-    level: typeof s.level === "string" ? s.level : "b1",
-    week: Number(s.week) || 1,
-    day: Number(s.day) || 1,
+    level: typeof s["level"] === "string" ? s["level"] : "b1",
+    week: Number(s["week"]) || 1,
+    day: Number(s["day"]) || 1,
   }),
   head: () => ({
     meta: [
@@ -103,7 +103,7 @@ function WheelPage() {
 
     setTimeout(() => {
       setSpinning(false);
-      const q = remaining[winIdx];
+      const q = remaining[winIdx]!;
       setResult(q);
       setRemaining((r) => r.filter((x) => x !== q));
       confetti({ particleCount: 160, spread: 90, origin: { y: 0.6 } });
@@ -146,7 +146,7 @@ function WheelPage() {
     const large = segDeg > 180 ? 1 : 0;
     return `M0 0 L${R * Math.cos(a0)} ${R * Math.sin(a0)} A${R} ${R} 0 ${large} 1 ${R * Math.cos(a1)} ${R * Math.sin(a1)} Z`;
   };
-  const resultText = result !== null ? data.questions[result] : "";
+  const resultText = result !== null ? (data.questions[result] ?? "") : "";
   const isCrazy = resultText.startsWith("Crazy story:");
 
   const btn = "rounded-full border-2 border-border bg-card px-4 py-2 font-bold text-sm hover:border-primary transition-colors";
