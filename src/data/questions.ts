@@ -1,5 +1,5 @@
 export type DayData = {
-  level: "b1" | "b2";
+  level: "b1" | "b2" | "b3";
   week: 1 | 2 | 3 | 4;
   day: 1 | 2 | 3 | 4 | 5;
   title: string; // base "Automatic Fluency" question, shown in header
@@ -13,7 +13,7 @@ export const LEVELS = [
   { id: "b0", label: "BASIC 0", enabled: false },
   { id: "b1", label: "BASIC 1", enabled: true },
   { id: "b2", label: "BASIC 2", enabled: true },
-  { id: "b3", label: "BASIC 3", enabled: false },
+  { id: "b3", label: "BASIC 3", enabled: true },
   { id: "b4", label: "BASIC 4", enabled: false },
   { id: "int", label: "INTERMEDIATE", enabled: false },
   { id: "adv", label: "ADVANCED", enabled: false },
@@ -722,6 +722,356 @@ export const DAYS: DayData[] = [
   },
   {
     "level": "b2",
+    "week": 4,
+    "day": 5,
+    "enabled": false,
+    "title": "Monthly Evaluation",
+    "grammar": "",
+    "disabledReason": "Evaluation day — no wheel",
+    "questions": []
+  },
+  {
+    "level": "b3",
+    "week": 1,
+    "day": 1,
+    "enabled": false,
+    "title": "Coaching Day",
+    "grammar": "",
+    "disabledReason": "Coaching Day — no wheel",
+    "questions": []
+  },
+  {
+    "level": "b3",
+    "week": 1,
+    "day": 2,
+    "enabled": true,
+    "title": "What did you do yesterday?",
+    "grammar": "Simple Past · Irregular verbs",
+    "questions": [
+      "What did you do yesterday?",
+      "What did you eat yesterday? Where did you go?",
+      "What did your mom do yesterday?",
+      "What did you do last weekend?",
+      "Tell me 5 things you did yesterday. Use irregular verbs.",
+      "Crazy story: Yesterday you woke up with a tail. What did you do?",
+      "Crazy story: A monkey took your phone yesterday. What did it do? What did you do?",
+      "Crazy story: Yesterday your coach came to class on a horse. What did he or she do?",
+      "Crazy story: You found one million dollars yesterday. What did you buy? Where did you go?",
+      "Crazy story: Yesterday you met Batman at the supermarket. What did you say? What did he do?"
+    ]
+  },
+  {
+    "level": "b3",
+    "week": 1,
+    "day": 3,
+    "enabled": true,
+    "title": "What did you do yesterday?",
+    "grammar": "Simple Past · Yes/No questions",
+    "questions": [
+      "What did you do yesterday? Did you go to work?",
+      "Did you eat breakfast yesterday? What did you eat?",
+      "Did your mom cook yesterday? What did she make?",
+      "Did you study English last night? Why or why not?",
+      "Did you see your friends last weekend? What did you do?",
+      "Crazy story: Did you sleep on the roof last night? Why? What happened?",
+      "Crazy story: Did a dinosaur eat your homework yesterday? What did you tell your coach?",
+      "Crazy story: Did your cat drive your car last night? Where did it go?",
+      "Crazy story: Did you dance with the president yesterday? What song did you dance to?",
+      "Crazy story: Did your grandmother win a boxing match last weekend? What happened?"
+    ]
+  },
+  {
+    "level": "b3",
+    "week": 1,
+    "day": 4,
+    "enabled": true,
+    "title": "What did you do yesterday?",
+    "grammar": "Simple Past · Wh- questions",
+    "questions": [
+      "What did you do yesterday? Where did you go and who did you see?",
+      "What time did you wake up yesterday? What did you do after that?",
+      "Where did you eat lunch yesterday? What did you eat?",
+      "Who did you talk to yesterday? What did you talk about?",
+      "Why did you come to class today? What did you do before class?",
+      "Crazy story: Where did you go yesterday with a dragon? What did you do there?",
+      "Crazy story: Who did you see in your bathroom yesterday? What did he or she say?",
+      "Crazy story: Why did your coach cry in class yesterday? What happened?",
+      "Crazy story: What did your dog cook for dinner last night? Why?",
+      "Crazy story: What time did the aliens arrive at your house yesterday? What did they do?"
+    ]
+  },
+  {
+    "level": "b3",
+    "week": 1,
+    "day": 5,
+    "enabled": true,
+    "title": "What did you do yesterday?",
+    "grammar": "Past · Present · Present Progressive · Future comparison",
+    "questions": [
+      "What did you do yesterday? What are you doing now? What are you going to do tomorrow?",
+      "What did you do last weekend, and what are you going to do next weekend?",
+      "What does your mom do every day? What did she do yesterday?",
+      "What did you eat yesterday? What are you eating right now? What will you eat tonight?",
+      "Where did you go last year? Where are you going to go next year?",
+      "Crazy story: Yesterday you were a cat. What did you do? What are you doing today as a human?",
+      "Crazy story: Your coach was a pirate last week. What did he or she do? What is he or she doing now?",
+      "Crazy story: Yesterday it rained money. What did you do? What are you going to do with the money tomorrow?",
+      "Crazy story: A ghost lived with you last year. What did it do every day? What is it going to do now?",
+      "Crazy story: Yesterday you flew to the moon. What did you see? What are you going to do there tomorrow?"
+    ]
+  },
+  {
+    "level": "b3",
+    "week": 2,
+    "day": 1,
+    "enabled": true,
+    "title": "Crazy Story — What did you do?",
+    "grammar": "Regular verbs · -ED sounds",
+    "questions": [
+      "What did you do yesterday? Use regular verbs (watched, played, cooked, visited...).",
+      "What did you watch on TV last night?",
+      "What did you do on your first day of class at E4CC?",
+      "Who did you visit last weekend? What did you talk about?",
+      "What did you cook or what did you order last night?",
+      "Crazy story: Yesterday you walked to work with an elephant. What happened?",
+      "Crazy story: Your dog played soccer against Messi last night. Who scored? What happened?",
+      "Crazy story: Last night you danced with a ghost at a party. What happened?",
+      "Crazy story: Yesterday you cooked dinner for 100 monkeys. What did you cook? What happened?",
+      "Crazy story: Your coach visited the moon last weekend. What did he or she do there?"
+    ]
+  },
+  {
+    "level": "b3",
+    "week": 2,
+    "day": 2,
+    "enabled": true,
+    "title": "Crazy Story — What happened?",
+    "grammar": "Regular verbs · -ED sounds · What happened?",
+    "questions": [
+      "What happened yesterday at your house?",
+      "What did you do last Saturday? Tell me 5 things.",
+      "What did your best friend do yesterday?",
+      "What happened on your last birthday?",
+      "What did you do the last time it rained?",
+      "Crazy story: Yesterday a giant knocked on your door. What happened?",
+      "Crazy story: Your grandmother started a rock band last week. What happened at the concert?",
+      "Crazy story: Last night your phone talked to you. What did it say? What did you do?",
+      "Crazy story: You opened your refrigerator yesterday and a penguin jumped out. What happened?",
+      "Crazy story: Yesterday your coach arrived to class in a helicopter. What happened?"
+    ]
+  },
+  {
+    "level": "b3",
+    "week": 2,
+    "day": 3,
+    "enabled": true,
+    "title": "Crazy Story — Past, present and future",
+    "grammar": "Past · Present · Future comparison",
+    "questions": [
+      "What did you do yesterday, what do you do every day, and what are you going to do tomorrow?",
+      "What did you do last weekend? What are you going to do next weekend?",
+      "What did your mom do yesterday? What is she doing right now?",
+      "Where did you go on your last vacation? Where are you going to go on your next vacation?",
+      "What did you learn last week? What are you going to learn this week?",
+      "Crazy story: Last year you were a famous singer. What did you do? What do you do now? What are you going to do next year?",
+      "Crazy story: Yesterday a robot cleaned your house. What did it do? What is it doing now? What will it do tomorrow?",
+      "Crazy story: Your cat was a doctor last year. What did it do? What is it doing now?",
+      "Crazy story: Last night you visited the year 3000. What did you see? What are people going to do there?",
+      "Crazy story: Yesterday your coach was invisible. What did he or she do? What is he or she going to do tomorrow?"
+    ]
+  },
+  {
+    "level": "b3",
+    "week": 2,
+    "day": 4,
+    "enabled": true,
+    "title": "Tell me about a happy moment of your life!",
+    "grammar": "Simple Past (Book Quiz day)",
+    "questions": [
+      "Tell me about a happy moment of your life. Use simple past.",
+      "What was the best day of your life? What happened?",
+      "Tell me about your last birthday. What did you do? Who was there?",
+      "What was the happiest moment of your childhood? What happened?",
+      "Tell me about a day you laughed a lot. What happened?",
+      "Crazy story: The happiest moment of your life was when you met a dragon. What happened?",
+      "Crazy story: Yesterday was the best day ever: you won a trip to Mars. What did you do?",
+      "Crazy story: Tell me about the happy day your dog learned to talk. What did he say?",
+      "Crazy story: Tell me about the day you became the president of El Salvador. What happened? What did you do first?",
+      "Crazy story: Tell me about the happy moment when your coach gave everyone a million dollars. What happened?"
+    ]
+  },
+  {
+    "level": "b3",
+    "week": 2,
+    "day": 5,
+    "enabled": false,
+    "title": "Deep Level Evaluation",
+    "grammar": "",
+    "disabledReason": "Evaluation day — no wheel",
+    "questions": []
+  },
+  {
+    "level": "b3",
+    "week": 3,
+    "day": 1,
+    "enabled": true,
+    "title": "Tell me about your favorite movie.",
+    "grammar": "Past Progressive (introduction)",
+    "questions": [
+      "Tell me about your favorite movie.",
+      "Tell me about your favorite movie: what happened at the beginning?",
+      "What were you doing before your English class today?",
+      "What were you doing yesterday at 8 pm?",
+      "What was your family doing last night while you were studying?",
+      "Crazy story: Tell me about a movie where your coach is the hero. What happened?",
+      "Crazy story: What were you doing when a dinosaur walked into your kitchen?",
+      "Crazy story: Tell me about a movie where a cat saves the world. What happened?",
+      "Crazy story: What was your dog doing while you were sleeping last night?",
+      "Crazy story: Tell me about a movie where you are a pirate. What happened at the end?"
+    ]
+  },
+  {
+    "level": "b3",
+    "week": 3,
+    "day": 2,
+    "enabled": true,
+    "title": "Tell me about your favorite movie.",
+    "grammar": "Past Progressive · WHILE and WHEN",
+    "questions": [
+      "Tell me about your favorite movie. What happened while the main character was in trouble?",
+      "What were you doing when your phone rang yesterday?",
+      "What happened while you were coming to class today?",
+      "What were you doing when it started to rain last time?",
+      "What was your mom doing when you arrived home yesterday?",
+      "Crazy story: You were taking a shower when a monkey opened the door. What happened?",
+      "Crazy story: Your coach was teaching when a UFO landed outside. What happened?",
+      "Crazy story: While you were sleeping, your shoes walked to the store. What did they buy?",
+      "Crazy story: You were eating pupusas when Shakira called you. What did she say?",
+      "Crazy story: While your family was watching TV, a giant sat on the house. What happened?"
+    ]
+  },
+  {
+    "level": "b3",
+    "week": 3,
+    "day": 3,
+    "enabled": true,
+    "title": "Tell me about your favorite movie.",
+    "grammar": "Past Progressive · Wh- questions",
+    "questions": [
+      "Tell me about your favorite movie. Who was the main character? What was he or she doing?",
+      "What were you doing before going to sleep last night?",
+      "Where were you going yesterday at 5 pm? What were you doing?",
+      "Who were you talking to yesterday? What were you talking about?",
+      "Why were you laughing the last time you laughed a lot? What was happening?",
+      "Crazy story: What were the chickens doing in your car yesterday?",
+      "Crazy story: Where was your coach going on a dinosaur yesterday? Why?",
+      "Crazy story: Who was dancing in your kitchen at 3 am last night? What were they doing?",
+      "Crazy story: Why was a lion sleeping on your bed yesterday? What was it doing before that?",
+      "Crazy story: What was your grandmother doing on a motorcycle yesterday? Where was she going?"
+    ]
+  },
+  {
+    "level": "b3",
+    "week": 3,
+    "day": 4,
+    "enabled": true,
+    "title": "Tell me about your favorite movie.",
+    "grammar": "Past Progressive with WHEN · What happened?",
+    "questions": [
+      "Tell me about your favorite movie. What happened at the end?",
+      "What happened yesterday while you were working or studying?",
+      "What were you doing when you heard good news last time?",
+      "Tell me about an accident or a surprise: what were you doing when it happened?",
+      "What were your friends doing when you arrived at the last party?",
+      "Crazy story: You were walking to class when a dragon offered you a ride. What happened?",
+      "Crazy story: Tell me about a movie where a zombie was working in a call center. What happened?",
+      "Crazy story: Your coach was sleeping in class when the students started a party. What happened?",
+      "Crazy story: You were cooking when your dog started to sing. What happened?",
+      "Crazy story: While the president was talking on TV, a monkey took the microphone. What happened?"
+    ]
+  },
+  {
+    "level": "b3",
+    "week": 3,
+    "day": 5,
+    "enabled": false,
+    "title": "Movie Evaluation",
+    "grammar": "",
+    "disabledReason": "Evaluation day — no wheel",
+    "questions": []
+  },
+  {
+    "level": "b3",
+    "week": 4,
+    "day": 1,
+    "enabled": true,
+    "title": "Tell me about your favorite movie.",
+    "grammar": "-ED sounds review",
+    "questions": [
+      "Tell me about your favorite movie.",
+      "Tell me about your favorite movie: what happened to the main character?",
+      "What movie did you watch last? What happened? Did you like it?",
+      "What did you do last weekend? Use regular verbs (watched, visited, played, cooked).",
+      "Tell me about the last party you attended. What happened?",
+      "Crazy story: Tell me about a movie where your dog is the president. What happened?",
+      "Crazy story: Last night you watched a movie and the actors jumped out of the TV. What happened?",
+      "Crazy story: Tell me about a movie where your coach fights 100 chickens. What happened?",
+      "Crazy story: You visited a planet where everybody dances all day. What happened?",
+      "Crazy story: Tell me about a movie where a pupusa saves the world. What happened?"
+    ]
+  },
+  {
+    "level": "b3",
+    "week": 4,
+    "day": 2,
+    "enabled": true,
+    "title": "Tell me about your favorite movie.",
+    "grammar": "Past Progressive · Present Progressive · Simple Past · Simple Present comparison",
+    "questions": [
+      "Tell me about your favorite movie: what happened, and what is happening in the sequel?",
+      "What did you do yesterday, what are you doing now, and what were you doing at this time yesterday?",
+      "What does your mom usually do? What was she doing last night at 9 pm?",
+      "What were you doing last Sunday at 10 am? What do you usually do on Sundays?",
+      "Tell me about the last time you came late to class. What happened? What were you doing?",
+      "Crazy story: Your cat usually sleeps all day, but yesterday it was flying a plane. What happened?",
+      "Crazy story: Your coach was dancing with a robot yesterday. What does the robot usually do? What is it doing now?",
+      "Crazy story: A ghost lives in your house. What does it usually do? What was it doing last night?",
+      "Crazy story: Tell me about a movie where you are a superhero: what do you do every day, and what were you doing when the city needed help?",
+      "Crazy story: Yesterday you were a bird. What were you doing at 7 am? What are you doing now as a human?"
+    ]
+  },
+  {
+    "level": "b3",
+    "week": 4,
+    "day": 3,
+    "enabled": true,
+    "title": "Tell me about your favorite movie.",
+    "grammar": "USED TO",
+    "questions": [
+      "Tell me about your favorite movie. What did you use to watch when you were a child?",
+      "What did you use to do when you were a child?",
+      "What did you use to eat when you were a kid? What do you eat now?",
+      "Where did you use to live? Where do you live now?",
+      "What did your mom use to do when she was young?",
+      "Crazy story: You used to be a dragon. What did you use to do every day?",
+      "Crazy story: Your coach used to live on the moon. What did he or she use to do there?",
+      "Crazy story: Your dog used to be a famous singer. What did he use to sing?",
+      "Crazy story: When you were a kid you used to fly to school. What did you use to see from the sky?",
+      "Crazy story: Your grandmother used to be a pirate. What did she use to do? Why did she stop?"
+    ]
+  },
+  {
+    "level": "b3",
+    "week": 4,
+    "day": 4,
+    "enabled": false,
+    "title": "Monthly Evaluation",
+    "grammar": "",
+    "disabledReason": "Evaluation day — no wheel",
+    "questions": []
+  },
+  {
+    "level": "b3",
     "week": 4,
     "day": 5,
     "enabled": false,
