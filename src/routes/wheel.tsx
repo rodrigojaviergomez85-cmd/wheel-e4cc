@@ -1,16 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import confetti from "canvas-confetti";
-import { findDay, LEVELS } from "@/data/questions";
+import { findDay, LEVELS, isCrazy, isDebateDay, pickWheelIndices, type WheelMode } from "@/data/questions";
+import { ModeToggle, isMode } from "@/components/ModeToggle";
 import { cn } from "@/lib/utils";
 
-type Search = { level: string; week: number; day: number };
+type Search = { level: string; week: number; day: number; mode?: WheelMode };
 
 export const Route = createFileRoute("/wheel")({
   validateSearch: (s: Record<string, unknown>): Search => ({
     level: typeof s["level"] === "string" ? s["level"] : "b1",
     week: Number(s["week"]) || 1,
     day: Number(s["day"]) || 1,
+    mode: isMode(s["mode"]) ? s["mode"] : undefined,
   }),
   head: () => ({
     meta: [
@@ -41,13 +43,20 @@ function playTick(ctx: AudioContext) {
 }
 
 function WheelPage() {
-  const { level, week, day } = Route.useSearch();
+  const search = Route.useSearch();
+  const { level, week, day } = search;
+  const navigate = Route.useNavigate();
   const data = findDay(level, week, day);
   const levelLabel = LEVELS.find((l) => l.id === level)?.label ?? level.toUpperCase();
-  const key = `${level}-w${week}-d${day}`;
-  const total = data?.questions.length ?? 0;
+  const debate = data ? isDebateDay(data) : false;
 
-  const [remaining, setRemaining] = useState<number[]>(() => Array.from({ length: total }, (_, i) => i));
+  const [mode, setModeState] = useState<WheelMode>(search.mode ?? "classic");
+  const [wheel, setWheel] = useState<number[]>([]);
+  const [remaining, setRemaining] = useState<number[]>([]);
+  const [loadedKey, setLoadedKey] = useState("");
+  const key = `e4cc-${level}-w${week}-d${day}-${mode}`;
+  const total = wheel.length;
+
   const [rotation, setRotation] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState<number | null>(null);
@@ -56,18 +65,50 @@ function WheelPage() {
   const audioRef = useRef<AudioContext | null>(null);
   const wheelRef = useRef<SVGGElement>(null);
 
+  // Resolve mode from URL, else stored, else classic
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(`e4cc-${key}`);
-      if (saved) setRemaining(JSON.parse(saved));
-      else setRemaining(Array.from({ length: total }, (_, i) => i));
       setMuted(localStorage.getItem("e4cc-muted") === "1");
+      if (!search.mode) {
+        const m = localStorage.getItem("e4cc-mode");
+        if (isMode(m)) setModeState(m);
+      } else {
+        setModeState(search.mode);
+        localStorage.setItem("e4cc-mode", search.mode);
+      }
     } catch {}
-  }, [key, total]);
+  }, [search.mode]);
+
+  // Load wheel + progress for this class/mode
+  useEffect(() => {
+    if (!data || !data.enabled) return;
+    let picked: number[] | undefined;
+    let rem: number[] | undefined;
+    try {
+      const saved = JSON.parse(localStorage.getItem(key) ?? "null");
+      if (Array.isArray(saved)) rem = saved;
+      else if (saved) { picked = saved.picked; rem = saved.remaining; }
+    } catch {}
+    const w = pickWheelIndices(data, mode, picked);
+    const valid = rem?.filter((i) => w.includes(i));
+    setWheel(w);
+    setRemaining(valid ?? w);
+    setResult(null);
+    setLoadedKey(key);
+  }, [key, data, mode]);
 
   useEffect(() => {
-    localStorage.setItem(`e4cc-${key}`, JSON.stringify(remaining));
-  }, [remaining, key]);
+    if (loadedKey !== key) return;
+    const picked = wheel.filter((i) => data && isCrazy(data.questions[i] ?? ""));
+    localStorage.setItem(key, JSON.stringify(mode === "classic" ? { picked, remaining } : { remaining }));
+  }, [remaining, wheel, key, loadedKey, mode, data]);
+
+  const changeMode = (m: WheelMode) => {
+    if (spinning) return;
+    localStorage.setItem("e4cc-mode", m);
+    setModeState(m);
+    void navigate({ search: { level, week, day, mode: m }, replace: true });
+  };
 
   const spin = useCallback(() => {
     if (spinning || remaining.length === 0 || result !== null) return;
@@ -114,7 +155,13 @@ function WheelPage() {
   spinRef.current = spin;
   const closeResult = () => setResult(null);
   const nextSpin = () => { setResult(null); setTimeout(() => spinRef.current(), 50); };
-  const reset = () => { setRemaining(Array.from({ length: total }, (_, i) => i)); setResult(null); };
+  const reset = () => {
+    if (!data) return;
+    const w = pickWheelIndices(data, mode); // re-rolls crazy pick in classic
+    setWheel(w);
+    setRemaining(w);
+    setResult(null);
+  };
   const toggleMute = () => setMuted((m) => { localStorage.setItem("e4cc-muted", m ? "0" : "1"); return !m; });
   const fullscreen = () => (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen());
 
