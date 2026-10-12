@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { LEVELS, findDay } from "@/data/questions";
+import { useEffect, useState } from "react";
+import { LEVELS, findDay, isDebateDay, type WheelMode } from "@/data/questions";
+import { ModeToggle, isMode } from "@/components/ModeToggle";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/")({
@@ -26,8 +27,15 @@ function Selector() {
   const [level, setLevel] = useState("b1");
   const [week, setWeek] = useState(1);
   const [day, setDay] = useState(1);
+  const [mode, setModeState] = useState<WheelMode>("classic");
+  useEffect(() => {
+    const m = localStorage.getItem("e4cc-mode");
+    if (isMode(m)) setModeState(m);
+  }, []);
+  const setMode = (m: WheelMode) => { setModeState(m); localStorage.setItem("e4cc-mode", m); };
   const sel = findDay(level, week, day);
   const canOpen = !!sel?.enabled;
+  const debate = sel ? isDebateDay(sel) : false;
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-10 md:py-16">
@@ -40,7 +48,7 @@ function Selector() {
       <section className="space-y-8 rounded-3xl bg-card p-6 shadow-xl md:p-8">
         <div>
           <h2 className="mb-3 text-xl font-semibold">Level</h2>
-          <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
             {LEVELS.map((l) => (
               <button key={l.id} disabled={!l.enabled} onClick={() => setLevel(l.id)} className={cn(chip, level === l.id ? on : off)}>
                 {l.label}
@@ -81,6 +89,13 @@ function Selector() {
           </div>
         </div>
 
+        {canOpen && !debate && (
+          <div>
+            <h2 className="mb-3 text-xl font-semibold">Wheel mode</h2>
+            <ModeToggle value={mode} onChange={setMode} />
+          </div>
+        )}
+
         <div className="flex flex-col items-center gap-3 border-t pt-6 text-center">
           {sel && <p className="font-display text-2xl font-semibold">{sel.title}</p>}
           {sel?.grammar && <p className="text-sm text-muted-foreground">{sel.grammar}</p>}
@@ -88,7 +103,7 @@ function Selector() {
           {canOpen ? (
             <Link
               to="/wheel"
-              search={{ level, week, day }}
+              search={{ level, week, day, mode }}
               className="rounded-full bg-accent px-10 py-4 font-display text-2xl font-bold text-accent-foreground shadow-lg transition-transform hover:scale-105"
             >
               Open wheel →
