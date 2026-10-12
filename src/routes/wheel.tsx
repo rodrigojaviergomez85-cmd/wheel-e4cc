@@ -202,7 +202,8 @@ function WheelPage() {
     <main className="mx-auto flex min-h-screen max-w-7xl flex-col px-4 py-4">
       <header className="flex flex-wrap items-center justify-between gap-3">
         <Link to="/" className={btn}>← Back</Link>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {!debate && <ModeToggle value={mode} onChange={changeMode} compact />}
           <button onClick={toggleMute} className={btn} aria-label="Toggle sound">{muted ? "🔇 Sound off" : "🔊 Sound on"}</button>
           <button onClick={() => setShowList((s) => !s)} className={btn}>{showList ? "Hide list" : "Show list"}</button>
           <button onClick={fullscreen} className={btn}>⛶ Fullscreen</button>
@@ -280,7 +281,7 @@ function WheelPage() {
 
         {showList && (
           <ol className="w-full max-w-xl space-y-2 rounded-3xl bg-card p-6 shadow-xl">
-            {data.questions.map((q, i) => (
+            {wheel.map((i) => [data.questions[i] ?? "", i] as const).map(([q, i]) => (
               <li key={i} className={cn("flex gap-3 text-lg", !remaining.includes(i) && "text-muted-foreground line-through")}>
                 <span className="font-display font-bold text-primary">{i + 1}.</span>
                 <span>{q}</span>
