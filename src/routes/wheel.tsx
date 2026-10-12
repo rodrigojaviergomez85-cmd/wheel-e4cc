@@ -5,7 +5,7 @@ import { findDay, LEVELS, isCrazy, isDebateDay, pickWheelIndices, type WheelMode
 import { ModeToggle, isMode } from "@/components/ModeToggle";
 import { cn } from "@/lib/utils";
 
-type Search = { level: string; week: number; day: number; mode?: WheelMode };
+type Search = { level: string; week: number; day: number; mode?: WheelMode | undefined };
 
 export const Route = createFileRoute("/wheel")({
   validateSearch: (s: Record<string, unknown>): Search => ({
@@ -194,7 +194,7 @@ function WheelPage() {
     return `M0 0 L${R * Math.cos(a0)} ${R * Math.sin(a0)} A${R} ${R} 0 ${large} 1 ${R * Math.cos(a1)} ${R * Math.sin(a1)} Z`;
   };
   const resultText = result !== null ? (data.questions[result] ?? "") : "";
-  const isCrazy = resultText.startsWith("Crazy story:");
+  const isCrazyQ = resultText.startsWith("Crazy story:");
 
   const btn = "rounded-full border-2 border-border bg-card px-4 py-2 font-bold text-sm hover:border-primary transition-colors";
 
@@ -295,11 +295,11 @@ function WheelPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4" onClick={closeResult}>
           <div className="w-full max-w-5xl rounded-3xl bg-card p-8 text-center shadow-2xl animate-in zoom-in-90 md:p-14" onClick={(e) => e.stopPropagation()}>
             <p className="font-display text-xl font-bold text-primary">Question #{result + 1}</p>
-            {isCrazy && (
+            {isCrazyQ && (
               <span className="mt-3 inline-block rounded-full bg-crazy px-4 py-1 font-display font-bold text-crazy-foreground">🤪 CRAZY STORY</span>
             )}
             <p className="mt-5 font-display text-3xl font-semibold leading-tight text-card-foreground md:text-[2.75rem]">
-              {isCrazy ? resultText.replace(/^Crazy story:\s*/, "") : resultText}
+              {isCrazyQ ? resultText.replace(/^Crazy story:\s*/, "") : resultText}
             </p>
             <div className="mt-10 flex justify-center gap-4">
               {n > 0 && (
