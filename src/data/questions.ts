@@ -19,7 +19,7 @@ export const LEVELS = [
   { id: "sharks", label: "SHARKS", enabled: true },
   { id: "eagles", label: "EAGLES", enabled: true },
   { id: "adv1", label: "ADVANCED 1", enabled: true },
-  { id: "adv2", label: "ADVANCED 2", enabled: false },
+  { id: "adv2", label: "ADVANCED 2", enabled: true },
   { id: "adv3", label: "ADVANCED 3", enabled: false },
 ] as const;
 
@@ -2936,6 +2936,386 @@ export const DAYS: DayData[] = [
   },
   {
     "level": "adv1",
+    "week": 4,
+    "day": 5,
+    "enabled": false,
+    "title": "Evaluations",
+    "grammar": "",
+    "disabledReason": "Evaluation day — no wheel",
+    "questions": []
+  },
+  {
+    "level": "adv2",
+    "week": 1,
+    "day": 1,
+    "enabled": true,
+    "title": "Tell me about yourself professionally",
+    "grammar": "Interview (Coaching Day)",
+    "questions": [
+      "Tell me about yourself professionally.",
+      "Describe your work experience and the skills you have developed.",
+      "What are your professional goals for the next three years?",
+      "Describe yourself in three words and explain why.",
+      "What makes you a good candidate for a bilingual position?",
+      "Crazy story: Tell me about yourself professionally, but you are a dragon applying for a customer service job.",
+      "Crazy story: Describe your work experience as a pirate who now wants to work in sales.",
+      "Crazy story: You are a robot. Tell me about yourself professionally and your \"software\" skills.",
+      "Crazy story: Describe yourself in three words, but you are a cat applying to be a manager.",
+      "Crazy story: Tell me about yourself professionally as a superhero looking for a desk job."
+    ]
+  },
+  {
+    "level": "adv2",
+    "week": 1,
+    "day": 2,
+    "enabled": true,
+    "title": "Role-play: Make a hotel reservation",
+    "grammar": "Simple Past · Past Progressive (parallel and interrupted actions)",
+    "questions": [
+      "Role-play. Customer: Make a hotel reservation for two nights in Miami. Agent: Ask for dates, room type and payment.",
+      "Role-play. Customer: You need a hotel room with a sea view for your anniversary. Agent: Offer options and prices.",
+      "Role-play. Customer: Reserve 5 rooms for a company event. Agent: Explain group rates and confirm.",
+      "Role-play. Customer: You want to modify your reservation and add one more night. Agent: Help and explain the policy.",
+      "Role-play. Customer: You need a room accessible for a wheelchair. Agent: Check availability and confirm.",
+      "Crazy story: Role-play. Customer: Make a hotel reservation for a family of giants. Agent: Find a suitable room.",
+      "Crazy story: Role-play. Customer: A vampire wants a room with no windows and late check-out at sunset. Agent: Help him.",
+      "Crazy story: Role-play. Customer: Reserve a room for 30 penguins with a cold pool. Agent: Offer options.",
+      "Crazy story: Role-play. Customer: A ghost wants a haunted suite for Halloween. Agent: Confirm the reservation.",
+      "Crazy story: Role-play. Customer: Make a hotel reservation on the moon for your honeymoon. Agent: Explain the options."
+    ]
+  },
+  {
+    "level": "adv2",
+    "week": 1,
+    "day": 3,
+    "enabled": true,
+    "title": "VAOAT: Customer – Agent",
+    "grammar": "Simple Present · Present Progressive with prepositions",
+    "questions": [
+      "VAOAT role-play. Customer: Your flight was overbooked and you lost your seat. Agent: Calm down the customer applying VAOAT.",
+      "VAOAT role-play. Customer: The cable company cut your service by mistake. Agent: Apply VAOAT and restore it.",
+      "VAOAT role-play. Customer: Your online order was cancelled without explanation. Agent: Calm down the customer.",
+      "VAOAT role-play. Customer: You waited two hours at the restaurant and your food never came. Agent: Apply VAOAT.",
+      "VAOAT role-play. Customer: The gym charged you after you cancelled your membership. Agent: Calm down the customer and solve it.",
+      "Crazy story: VAOAT. Customer: A wizard's flying broom was cancelled by the airline. Agent: Calm him down applying VAOAT.",
+      "Crazy story: VAOAT. Customer: Your cable company only transmits channels in dolphin language. Agent: Apply VAOAT.",
+      "Crazy story: VAOAT. Customer: You ordered a robot assistant and it is bossing you around. Agent: Calm down the customer.",
+      "Crazy story: VAOAT. Customer: A giant waited at a restaurant and the chairs were too small. Agent: Apply VAOAT.",
+      "Crazy story: VAOAT. Customer: The gym charged a dragon for breaking all the treadmills with his fire. Agent: Calm him down and solve it."
+    ]
+  },
+  {
+    "level": "adv2",
+    "week": 1,
+    "day": 4,
+    "enabled": true,
+    "title": "Role-play: Read a phone bill",
+    "grammar": "Simple Future with prepositions of time",
+    "questions": [
+      "Role-play. Customer: You don't understand the charges on your phone bill. Agent: Explain each one.",
+      "Role-play. Customer: There is a charge for international calls you never made. Agent: Investigate and explain.",
+      "Role-play. Customer: Your bill doubled this month. Agent: Review it and explain why.",
+      "Role-play. Customer: You want to understand the taxes and fees on your bill. Agent: Explain them clearly.",
+      "Role-play. Customer: You were charged for a premium service you didn't request. Agent: Explain and remove it.",
+      "Crazy story: Role-play. Customer: Your phone bill includes 500 calls to the moon. Agent: Explain and investigate.",
+      "Crazy story: Role-play. Customer: A ghost's phone bill shows calls to a cemetery at 3 am every night. Agent: Explain.",
+      "Crazy story: Role-play. Customer: Your cat's phone bill is higher than yours. Agent: Review the charges.",
+      "Crazy story: Role-play. Customer: Your bill has a charge for \"dragon roaming\". Agent: Explain what it is.",
+      "Crazy story: Role-play. Customer: A robot's phone bill includes a \"feelings data plan\". Agent: Explain each charge."
+    ]
+  },
+  {
+    "level": "adv2",
+    "week": 1,
+    "day": 5,
+    "enabled": true,
+    "title": "Money Transfers: Vocab + Role Play",
+    "grammar": "Quiz day · Flow: money transfers",
+    "questions": [
+      "Role-play. Customer: You want to send money to your family in another country. Agent: Explain the process, fees and time.",
+      "Role-play. Customer: Your transfer hasn't arrived after 3 days. Agent: Track it and explain.",
+      "Role-play. Customer: You sent money to the wrong account. Agent: Explain what can be done.",
+      "Role-play. Customer: You want to know the exchange rate and the cheapest way to send $500. Agent: Explain the options.",
+      "Role-play. Customer: You need to receive a transfer but you don't have a bank account. Agent: Explain the alternatives.",
+      "Crazy story: Role-play. Customer: You want to send money to your cousin on Mars. Agent: Explain the fees and the time.",
+      "Crazy story: Role-play. Customer: A pirate wants to transfer gold coins to his bank. Agent: Explain the process.",
+      "Crazy story: Role-play. Customer: Your transfer was received by a dragon who refuses to give it back. Agent: Solve it.",
+      "Crazy story: Role-play. Customer: A ghost wants to send money to his living relatives but has no ID. Agent: Explain the requirements.",
+      "Crazy story: Role-play. Customer: You want to send 1,000 bananas as currency to a monkey. Agent: Explain the options."
+    ]
+  },
+  {
+    "level": "adv2",
+    "week": 2,
+    "day": 1,
+    "enabled": true,
+    "title": "RIOC: Explain it and apply it",
+    "grammar": "Present Perfect · Present Perfect Progressive",
+    "questions": [
+      "RIOC role-play. Customer: You are looking for a new credit card. Agent: Sell using RIOC.",
+      "RIOC role-play. Customer: You want a streaming subscription. Agent: Sell using RIOC.",
+      "RIOC role-play. Customer: You want to buy a bicycle for commuting. Agent: Sell using RIOC.",
+      "RIOC role-play. Customer: You want a home security system. Agent: Sell using RIOC.",
+      "RIOC role-play. Customer: You want a tablet for your kids. Agent: Sell using RIOC.",
+      "Crazy story: RIOC. Customer: A zombie wants a credit card. Agent: Sell using RIOC.",
+      "Crazy story: RIOC. Customer: A mermaid wants a streaming subscription for the ocean. Agent: Sell using RIOC.",
+      "Crazy story: RIOC. Customer: A giant wants a bicycle. Agent: Sell using RIOC.",
+      "Crazy story: RIOC. Customer: A vampire wants a home security system against vampire hunters. Agent: Sell using RIOC.",
+      "Crazy story: RIOC. Customer: A dragon wants a tablet for his baby dragons. Agent: Sell using RIOC."
+    ]
+  },
+  {
+    "level": "adv2",
+    "week": 2,
+    "day": 2,
+    "enabled": true,
+    "title": "Role-play: Hotel Package Upgrade",
+    "grammar": "Past Perfect · Past Perfect Progressive",
+    "questions": [
+      "Role-play. Customer: You booked a standard room. Agent: Offer an upgrade to a suite and convince the customer.",
+      "Role-play. Customer: You booked a hotel without breakfast. Agent: Upsell the all-inclusive package.",
+      "Role-play. Customer: You are traveling with kids. Agent: Offer the family package with activities.",
+      "Role-play. Customer: You want a quiet stay. Agent: Offer the spa package upgrade.",
+      "Role-play. Customer: You are on a business trip. Agent: Offer the executive package with airport transfer.",
+      "Crazy story: Role-play. Customer: A dragon booked a standard room. Agent: Offer an upgrade to the fireproof suite.",
+      "Crazy story: Role-play. Customer: A vampire booked a room. Agent: Upsell the \"no sunlight\" package.",
+      "Crazy story: Role-play. Customer: A family of robots booked a room. Agent: Offer the package with unlimited charging.",
+      "Crazy story: Role-play. Customer: A ghost booked a room. Agent: Upsell the haunted tower suite.",
+      "Crazy story: Role-play. Customer: A mermaid booked a room. Agent: Offer the upgrade with a private pool."
+    ]
+  },
+  {
+    "level": "adv2",
+    "week": 2,
+    "day": 3,
+    "enabled": true,
+    "title": "RIOC: Customer – Agent",
+    "grammar": "Modal Verbs",
+    "questions": [
+      "RIOC role-play. Customer: You want to buy a smartwatch. Agent: Sell using RIOC.",
+      "RIOC role-play. Customer: You want a vacation package to Cancún. Agent: Sell using RIOC.",
+      "RIOC role-play. Customer: You need a new car for your family. Agent: Sell using RIOC.",
+      "RIOC role-play. Customer: You want an online course to learn programming. Agent: Sell using RIOC.",
+      "RIOC role-play. Customer: You want a pet insurance plan. Agent: Sell using RIOC.",
+      "Crazy story: RIOC. Customer: A pirate wants a smartwatch that works under water. Agent: Sell using RIOC.",
+      "Crazy story: RIOC. Customer: A family of ghosts wants a vacation package. Agent: Sell using RIOC.",
+      "Crazy story: RIOC. Customer: A giant needs a car. Agent: Sell using RIOC.",
+      "Crazy story: RIOC. Customer: A dragon wants to learn programming. Agent: Sell the course using RIOC.",
+      "Crazy story: RIOC. Customer: A wizard wants insurance for his pet dragon. Agent: Sell using RIOC."
+    ]
+  },
+  {
+    "level": "adv2",
+    "week": 2,
+    "day": 4,
+    "enabled": true,
+    "title": "RIOC: Sell a package deal (flight + hotel)",
+    "grammar": "Comparatives and Superlatives",
+    "questions": [
+      "RIOC role-play. Customer: You want a package deal (flight + hotel) to New York. Agent: Sell using RIOC.",
+      "RIOC role-play. Customer: You want a cheap package for a weekend at the beach. Agent: Sell using RIOC.",
+      "RIOC role-play. Customer: You want a honeymoon package. Agent: Sell using RIOC and upsell.",
+      "RIOC role-play. Customer: You want a package to Europe for two weeks. Agent: Sell using RIOC.",
+      "RIOC role-play. Customer: You want a family package to a theme park. Agent: Sell using RIOC.",
+      "Crazy story: RIOC. Customer: A dragon wants a package deal (flight + hotel) but he can fly by himself. Agent: Sell using RIOC.",
+      "Crazy story: RIOC. Customer: A family of penguins wants a package to the desert. Agent: Sell using RIOC.",
+      "Crazy story: RIOC. Customer: A vampire wants a honeymoon package in a sunny place. Agent: Sell using RIOC.",
+      "Crazy story: RIOC. Customer: A ghost wants a package to a haunted castle in Europe. Agent: Sell using RIOC.",
+      "Crazy story: RIOC. Customer: A robot wants a package to a theme park with no electricity. Agent: Sell using RIOC."
+    ]
+  },
+  {
+    "level": "adv2",
+    "week": 2,
+    "day": 5,
+    "enabled": false,
+    "title": "Evaluations",
+    "grammar": "",
+    "disabledReason": "Evaluation day — no wheel",
+    "questions": []
+  },
+  {
+    "level": "adv2",
+    "week": 3,
+    "day": 1,
+    "enabled": true,
+    "title": "VAOAT: You ordered a couch but it hasn't arrived",
+    "grammar": "BE USED TO · USED TO",
+    "questions": [
+      "VAOAT role-play. Customer: You ordered a couch but it hasn't arrived. Agent: Calm down the customer applying VAOAT.",
+      "VAOAT role-play. Customer: Your new refrigerator arrived damaged. Agent: Apply VAOAT.",
+      "VAOAT role-play. Customer: The delivery team scratched your floor. Agent: Calm down the customer and offer a solution.",
+      "VAOAT role-play. Customer: You received the wrong color of bed. Agent: Apply VAOAT.",
+      "VAOAT role-play. Customer: Your furniture was delivered but nobody assembled it as promised. Agent: Calm down the customer.",
+      "Crazy story: VAOAT. Customer: Your couch arrived, but it's alive and it won't let you sit. Agent: Apply VAOAT.",
+      "Crazy story: VAOAT. Customer: A giant's refrigerator arrived the size of a toy. Agent: Calm him down.",
+      "Crazy story: VAOAT. Customer: The delivery team was a group of monkeys and they ate your fruit. Agent: Apply VAOAT.",
+      "Crazy story: VAOAT. Customer: A vampire's bed arrived with a mirror. Agent: Calm down the customer.",
+      "Crazy story: VAOAT. Customer: Your furniture was delivered to the moon. Agent: Apply VAOAT and solve it."
+    ]
+  },
+  {
+    "level": "adv2",
+    "week": 3,
+    "day": 2,
+    "enabled": true,
+    "title": "Role-play: Router Troubleshoot",
+    "grammar": "BE ABOUT TO · WAS/WERE GOING TO",
+    "questions": [
+      "Role-play. Customer: Your router has a red light and no internet. Agent: Troubleshoot step by step.",
+      "Role-play. Customer: Your Wi-Fi works in the living room but not in the bedroom. Agent: Troubleshoot.",
+      "Role-play. Customer: The internet is very slow at night. Agent: Troubleshoot and explain.",
+      "Role-play. Customer: You forgot your Wi-Fi password. Agent: Help the customer recover or reset it.",
+      "Role-play. Customer: Your router restarts by itself every hour. Agent: Troubleshoot.",
+      "Crazy story: Role-play. Customer: Your router only works when your dog is sleeping. Agent: Troubleshoot.",
+      "Crazy story: Role-play. Customer: A ghost keeps unplugging your router at midnight. Agent: Troubleshoot.",
+      "Crazy story: Role-play. Customer: Your Wi-Fi connects to the moon but not to your phone. Agent: Troubleshoot.",
+      "Crazy story: Role-play. Customer: Your router speaks and refuses to give internet until you say \"please\". Agent: Troubleshoot.",
+      "Crazy story: Role-play. Customer: A dragon melted the router and now the internet is only hot. Agent: Troubleshoot."
+    ]
+  },
+  {
+    "level": "adv2",
+    "week": 3,
+    "day": 3,
+    "enabled": true,
+    "title": "VAOAT: Customer – Agent",
+    "grammar": "Passive Voice: past and future",
+    "questions": [
+      "VAOAT role-play. Customer: Your car repair cost double the estimate. Agent: Calm down the customer applying VAOAT.",
+      "VAOAT role-play. Customer: Your concert tickets were never sent and the show is tomorrow. Agent: Apply VAOAT.",
+      "VAOAT role-play. Customer: Your luggage was lost by the airline. Agent: Calm down the customer and explain the process.",
+      "VAOAT role-play. Customer: Your taxi driver took a long route and charged you extra. Agent: Apply VAOAT.",
+      "VAOAT role-play. Customer: The clinic cancelled your appointment without telling you. Agent: Calm down the customer and reschedule.",
+      "Crazy story: VAOAT. Customer: A mechanic turned your car into a boat by mistake. Agent: Apply VAOAT.",
+      "Crazy story: VAOAT. Customer: Your concert tickets were for a concert in the year 1985. Agent: Calm down the customer.",
+      "Crazy story: VAOAT. Customer: The airline lost your luggage and found a dinosaur egg instead. Agent: Apply VAOAT.",
+      "Crazy story: VAOAT. Customer: Your taxi driver was a sloth and the trip took 9 hours. Agent: Calm down the customer.",
+      "Crazy story: VAOAT. Customer: The clinic scheduled your appointment with a veterinarian. Agent: Apply VAOAT."
+    ]
+  },
+  {
+    "level": "adv2",
+    "week": 3,
+    "day": 4,
+    "enabled": true,
+    "title": "Role-play: Hotel Receptionist",
+    "grammar": "Second Conditional",
+    "questions": [
+      "Role-play. Guest: You arrive at the hotel to check in. Receptionist: Welcome the guest, confirm the reservation and explain the services.",
+      "Role-play. Guest: Your room key doesn't work. Receptionist: Solve the problem.",
+      "Role-play. Guest: You want to check out and there is a charge you don't recognize. Receptionist: Explain and solve it.",
+      "Role-play. Guest: You ask for restaurant recommendations and directions. Receptionist: Help the guest.",
+      "Role-play. Guest: The room next door is very noisy at 2 am. Receptionist: Apologize and offer a solution.",
+      "Crazy story: Role-play. Guest: A dragon arrives to check in. Receptionist: Welcome him and explain the fire policy.",
+      "Crazy story: Role-play. Guest: A ghost complains that the room is \"too alive\". Receptionist: Offer a solution.",
+      "Crazy story: Role-play. Guest: A giant can't fit through the door. Receptionist: Solve the problem.",
+      "Crazy story: Role-play. Guest: A vampire asks for breakfast at midnight. Receptionist: Help him.",
+      "Crazy story: Role-play. Guest: A family of monkeys asks for directions to the banana restaurant. Receptionist: Help them."
+    ]
+  },
+  {
+    "level": "adv2",
+    "week": 3,
+    "day": 5,
+    "enabled": true,
+    "title": "Role-play: Virtual Assistant Scheduling Meetings",
+    "grammar": "Quiz day · Flow: scheduling",
+    "questions": [
+      "Role-play. Client: You need to schedule a meeting with three people in different time zones. Assistant: Find a time and confirm.",
+      "Role-play. Client: You need to reschedule tomorrow's meeting. Assistant: Propose new times and notify everyone.",
+      "Role-play. Client: You want to book a meeting room and order lunch for 10 people. Assistant: Organize everything.",
+      "Role-play. Client: Cancel all your meetings on Friday and explain it to the attendees. Assistant: Handle it.",
+      "Role-play. Client: Schedule a weekly team meeting for the next two months. Assistant: Set it up and confirm.",
+      "Crazy story: Role-play. Client: Schedule a meeting between a vampire (only at night) and a rooster (only at dawn). Assistant: Find a time.",
+      "Crazy story: Role-play. Client: Book a meeting room for 50 dragons. Assistant: Organize it.",
+      "Crazy story: Role-play. Client: Schedule a meeting with someone who lives on Mars. Assistant: Deal with the time difference.",
+      "Crazy story: Role-play. Client: Cancel a meeting with a ghost who doesn't use email. Assistant: Find a way to notify him.",
+      "Crazy story: Role-play. Client: Schedule a weekly meeting for a team of cats who only wake up at 3 pm. Assistant: Set it up."
+    ]
+  },
+  {
+    "level": "adv2",
+    "week": 4,
+    "day": 1,
+    "enabled": true,
+    "title": "Interview Questions",
+    "grammar": "Simple Past · -ED sounds",
+    "questions": [
+      "Why do you want to work for this company?",
+      "Tell me about a time you went above and beyond for a customer or a classmate.",
+      "How do you prioritize your tasks when everything is urgent?",
+      "What would your previous boss or teacher say about you?",
+      "Are you open to working flexible shifts, including evenings or weekends? Why?",
+      "Crazy story: Interview. Why do you want to work for a company run by dragons?",
+      "Crazy story: Interview. Tell me about a time you went above and beyond for a zombie customer.",
+      "Crazy story: Interview. How do you prioritize your tasks when your boss is a cat?",
+      "Crazy story: Interview. What would your previous boss, a pirate, say about you?",
+      "Crazy story: Interview. Are you open to working night shifts at a haunted castle?"
+    ]
+  },
+  {
+    "level": "adv2",
+    "week": 4,
+    "day": 2,
+    "enabled": true,
+    "title": "What challenge have you overcome recently that made you feel proud?",
+    "grammar": "Present Perfect + SINCE and FOR",
+    "questions": [
+      "What challenge have you overcome recently that made you feel proud? How did you do it?",
+      "What is something you have achieved since you started at E4CC?",
+      "How long have you been working on your biggest goal? What progress have you made?",
+      "What habit have you kept for a long time? How has it helped you?",
+      "What is a fear you have overcome? How did you do it?",
+      "Crazy story: You recently overcame your fear of dragons. How did you do it?",
+      "Crazy story: You have been training a monkey to work in a call center for 6 months. What challenge did you overcome?",
+      "Crazy story: You recently won an eating competition against a giant. How did you prepare?",
+      "Crazy story: You have been living with a ghost for a year and you finally became friends. How did you do it?",
+      "Crazy story: You taught a robot to laugh. What was the biggest challenge?"
+    ]
+  },
+  {
+    "level": "adv2",
+    "week": 4,
+    "day": 3,
+    "enabled": true,
+    "title": "Interview Questions",
+    "grammar": "Prepositions: in / on / at",
+    "questions": [
+      "Describe a situation where you had to learn something quickly. How did you do it?",
+      "How do you deal with a customer who is wrong but insists he is right?",
+      "What are your salary expectations and why?",
+      "Tell me about a time you made a mistake at work or school. What did you learn?",
+      "What do you know about our company and why are you a good fit?",
+      "Crazy story: Interview. Describe a situation where you had to learn dragon language in one day.",
+      "Crazy story: Interview. How do you deal with a customer who insists that the Earth is a pizza?",
+      "Crazy story: Interview. What are your salary expectations if the company pays in bananas?",
+      "Crazy story: Interview. Tell me about a time you made a mistake while working for a wizard.",
+      "Crazy story: Interview. What do you know about our company, which sells clouds?"
+    ]
+  },
+  {
+    "level": "adv2",
+    "week": 4,
+    "day": 4,
+    "enabled": true,
+    "title": "What do you regret? What would / should you have done differently?",
+    "grammar": "Perfect Modals",
+    "questions": [
+      "What things do you regret so far in your life? What would you have done differently?",
+      "What should you have done differently, knowing what you know now?",
+      "What is a decision you could have made earlier? What might have changed?",
+      "What would you have studied if you had had the chance? Why?",
+      "What advice would you have given yourself five years ago?",
+      "Crazy story: You could have adopted a dragon instead of a dog. What would have changed?",
+      "Crazy story: You should have accepted a job on the moon. What would your life have been like?",
+      "Crazy story: A pirate regrets not learning English. What should he have done?",
+      "Crazy story: Your coach could have been a famous singer. What might have happened?",
+      "Crazy story: You turned down a wizard's offer to become invisible. What would you have done with that power?"
+    ]
+  },
+  {
+    "level": "adv2",
     "week": 4,
     "day": 5,
     "enabled": false,
