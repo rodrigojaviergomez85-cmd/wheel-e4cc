@@ -89,7 +89,7 @@ function WheelPage() {
       let lastSeg = -1;
       const startRot = rotation;
       const tick = () => {
-        const el = wheelRef.current?.parentElement;
+        const el = wheelRef.current?.ownerSVGElement?.parentElement;
         if (!el) return;
         const m = new DOMMatrix(getComputedStyle(el).transform);
         const ang = (Math.atan2(m.b, m.a) * 180) / Math.PI;
@@ -110,8 +110,10 @@ function WheelPage() {
     }, SPIN_MS);
   }, [spinning, remaining, result, rotation, muted]);
 
+  const spinRef = useRef(spin);
+  spinRef.current = spin;
   const closeResult = () => setResult(null);
-  const nextSpin = () => { setResult(null); setTimeout(spin, 50); };
+  const nextSpin = () => { setResult(null); setTimeout(() => spinRef.current(), 50); };
   const reset = () => { setRemaining(Array.from({ length: total }, (_, i) => i)); setResult(null); };
   const toggleMute = () => setMuted((m) => { localStorage.setItem("e4cc-muted", m ? "0" : "1"); return !m; });
   const fullscreen = () => (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen());
