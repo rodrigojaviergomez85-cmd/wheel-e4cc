@@ -104,7 +104,6 @@ export function buildSteps(game: GameId, pack: GamePack, rng: () => number = Mat
       if (r.kind === "pastform") pick(pack.pastSprint?.verbs ?? [], r.items).forEach((t) => steps.push({ kind: "pastform", ...t, seconds: sec, round: ri }));
       if (r.kind === "word") pick(pack.wordSprint?.words ?? [], r.items).forEach((w) => steps.push({ kind: "word", es: w.es, en: w.en, alt: w.alt, category: w.category, seconds: sec, round: ri }));
       if (r.kind === "person") pick(pack.buildPerson?.cards ?? [], 1).forEach((c) => steps.push({ kind: "person", card: c, seconds: r.seconds, round: ri }));
-      if (false) pick(pack.pastSprint!.verbs, r.items).forEach((t) => steps.push({ kind: "pastform", ...t, seconds: sec, round: ri }));
       if (r.kind === "retell") pick(pack.storyHeist?.prompts ?? [], r.items).forEach((t) => steps.push({ kind: "retell", ...t, seconds: r.seconds, round: ri }));
     });
   }
