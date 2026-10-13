@@ -54,7 +54,7 @@ export type GamePack = {
   storyHeist?: { prompts: StoryPrompt[]; secondsPerTurn: number; strikesToExplode: number };
   pastSprint?: { verbs: VerbItem[]; flips: FlipItem[] };
   buildPerson?: { cards: PersonCard[]; secondsPerTurn: number; strikesToExplode: number; retellSeconds: number };
-  wordSprint?: { words: WordItem[]; spell: SpellItem[]; numbers: NumberItem[] };
+  wordSprint?: { words: WordItem[]; spell?: SpellItem[]; flips?: FlipItem[]; numbers: NumberItem[] };
   bossBattle: { name: string; hp: number; lives: number; rounds: BossRound[]; events: BossEvent[]; taunts: string[] };
   punishments: string[];
   powerCards: { name: string; emoji: string; effect: string }[];
