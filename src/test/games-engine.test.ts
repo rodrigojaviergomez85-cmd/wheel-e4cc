@@ -10,7 +10,7 @@ const names: [string, string] = ["A", "B"];
 describe("games engine", () => {
   it("only BASIC 3 week 2 has a pack", () => {
     expect(findGamePack("b3", 2)).toBeDefined();
-    expect(findGamePack("b3", 1)).toBeUndefined();
+    [1, 3, 4].forEach((w) => expect(findGamePack("b3", w)).toBeDefined());
     [1, 2, 3, 4].forEach((w) => expect(findGamePack("b0", w)).toBeDefined());
   });
 
