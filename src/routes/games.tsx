@@ -742,14 +742,14 @@ function PersonCenter({ pack, s, itemLeft, itemTotal, onCard, onRound, onTick, t
         <span className="rounded-full bg-accent px-4 py-1 font-display font-bold text-accent-foreground">{p.round === 1 ? "ROUND 1 · BUILD" : "ROUND 2 · RETELL"}</span>
         <ItemTimer left={itemLeft} total={itemTotal} />
       </div>
-      <p className="text-[clamp(64px,8vw,120px)] leading-none">{c.emoji}</p>
+      <p className="text-[clamp(48px,6vh,90px)] leading-none">{c.emoji}</p>
       <p className="font-display text-4xl font-bold">{c.title}</p>
       {p.round === 1 ? (
         <>
           <FactList facts={c.facts} ticks={p.ticks} onTick={onTick} />
           <Starters starters={c.starters} />
           {p.speaker ? (
-            <p className={cn("rounded-3xl px-10 py-3 font-display text-[clamp(40px,4.5vw,72px)] font-bold text-team-foreground", p.turn === 0 ? "bg-team-a" : "bg-team-b")}>🎤 {p.speaker}</p>
+            <p className={cn("rounded-3xl px-10 py-2 font-display text-[clamp(36px,4vw,60px)] font-bold text-team-foreground", p.turn === 0 ? "bg-team-a" : "bg-team-b")}>🎤 {p.speaker}</p>
           ) : (
             <p className="text-xl text-muted-foreground">Press Next turn (Space) to pick the first speaker</p>
           )}
