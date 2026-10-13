@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { LEVELS, findDay, isDebateDay, type WheelMode } from "@/data/questions";
 import { ModeToggle, isMode } from "@/components/ModeToggle";
 import { cn } from "@/lib/utils";
+import { findGamePack } from "@/data/games";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -36,6 +37,8 @@ function Selector() {
   const sel = findDay(level, week, day);
   const canOpen = !!sel?.enabled;
   const debate = sel ? isDebateDay(sel) : false;
+  const pack = findGamePack(level, week);
+  const gameDay = pack?.days.find((g) => g.day === day);
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-10 md:py-16">
@@ -78,7 +81,7 @@ function Selector() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
             {[1, 2, 3, 4, 5].map((d) => {
               const info = findDay(level, week, d);
-              const disabled = !info?.enabled;
+              const disabled = !info?.enabled && !pack?.days.some((g) => g.day === d);
               return (
                 <button key={d} disabled={disabled} onClick={() => setDay(d)} className={cn(chip, "flex flex-col", day === d && !disabled ? on : off)}>
                   Day {d}
@@ -100,6 +103,7 @@ function Selector() {
           {sel && <p className="font-display text-2xl font-semibold">{sel.title}</p>}
           {sel?.grammar && <p className="text-sm text-muted-foreground">{sel.grammar}</p>}
           {!canOpen && sel?.disabledReason && <p className="text-sm font-bold text-destructive">{sel.disabledReason}</p>}
+          <div className="flex flex-wrap items-center justify-center gap-3">
           {canOpen ? (
             <Link
               to="/wheel"
@@ -109,8 +113,24 @@ function Selector() {
               Open wheel →
             </Link>
           ) : (
-            <span className="rounded-full bg-muted px-10 py-4 font-display text-2xl font-bold text-muted-foreground">Select a day</span>
+            <span className="rounded-full bg-muted px-10 py-4 font-display text-2xl font-bold text-muted-foreground">No wheel today</span>
           )}
+          {gameDay ? (
+            <Link
+              to="/games"
+              search={{ level, week, day }}
+              className="rounded-full bg-primary px-10 py-4 font-display text-2xl font-bold text-primary-foreground shadow-lg transition-transform hover:scale-105"
+            >
+              🎮 Games
+            </Link>
+          ) : (
+            <span className="relative rounded-full bg-muted px-10 py-4 font-display text-2xl font-bold text-muted-foreground">
+              🎮 Games
+              <span className="absolute -top-2 right-2 rounded-full bg-accent px-2 py-0.5 text-[10px] font-bold text-accent-foreground">Coming soon</span>
+            </span>
+          )}
+          </div>
+          {gameDay && <p className="text-sm text-muted-foreground">Today's game: {gameDay.title}</p>}
         </div>
       </section>
     </main>
