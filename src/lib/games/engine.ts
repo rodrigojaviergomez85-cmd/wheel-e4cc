@@ -3,13 +3,13 @@ import type { BossEvent, GameId, GamePack } from "@/data/games/types";
 export type TeamIdx = 0 | 1;
 
 export type Step =
-  | { kind: "translate"; es: string; en: string; alt?: string[]; seconds: number; round?: number }
-  | { kind: "echo"; en: string; seconds: number }
-  | { kind: "fix"; wrong: string; right: string; hint: string; seconds: number; round?: number }
-  | { kind: "ed"; verb: string; sound: "t" | "d" | "id"; seconds: number }
-  | { kind: "vocab"; word: string; clue: string; sound: "t" | "d" | "id"; example: string; seconds: number; round?: number }
-  | { kind: "vault"; code: string; seconds: number }
-  | { kind: "retell"; prompt: string; retellAs: string; seconds: number; round?: number };
+  | { kind: "translate"; es: string; en: string; alt?: string[] | undefined; seconds: number; round?: number | undefined }
+  | { kind: "echo"; en: string; seconds: number; round?: undefined }
+  | { kind: "fix"; wrong: string; right: string; hint: string; seconds: number; round?: number | undefined }
+  | { kind: "ed"; verb: string; sound: "t" | "d" | "id"; seconds: number; round?: undefined }
+  | { kind: "vocab"; word: string; clue: string; sound: "t" | "d" | "id"; example: string; seconds: number; round?: number | undefined }
+  | { kind: "vault"; code: string; seconds: number; round?: undefined }
+  | { kind: "retell"; prompt: string; retellAs: string; seconds: number; round?: number | undefined };
 
 export type Team = {
   name: string;

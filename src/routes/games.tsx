@@ -512,7 +512,7 @@ function TeamPanel({ t, s, game, pack, className, onRename, onPlay }: {
   );
 }
 
-function ItemTimer({ left, total, label }: { left: number; total: number; label?: string }) {
+function ItemTimer({ left, total, label }: { left: number; total: number; label?: string | undefined }) {
   const r = 34;
   const c = 2 * Math.PI * r;
   const frac = total > 0 ? left / total : 0;
