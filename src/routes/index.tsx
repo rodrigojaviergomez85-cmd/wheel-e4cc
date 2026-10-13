@@ -130,7 +130,12 @@ function Selector() {
             </span>
           )}
           </div>
-          {gameDay && <p className="text-sm text-muted-foreground">Today's game: {gameDay.title}</p>}
+          {gameDay && (
+            <p className="flex flex-wrap items-center justify-center gap-2 text-sm text-muted-foreground">
+              Today's game: {gameDay.title}
+              {gameDay.note && <span className="rounded-full bg-crazy px-3 py-0.5 text-xs font-bold text-crazy-foreground">📝 {gameDay.note}</span>}
+            </p>
+          )}
         </div>
       </section>
     </main>
