@@ -1,13 +1,13 @@
-export type GameId = "bomb_squad" | "lightning_sniper" | "story_heist" | "word_heist" | "boss_battle";
+export type GameId = "bomb_squad" | "lightning_sniper" | "story_heist" | "past_sprint" | "boss_battle";
 
 export type TranslationItem = { es: string; en: string; alt?: string[]; tier: 1 | 2 | 3 };
 export type EchoItem = { en: string };
 export type SniperItem = { wrong: string; right: string; hint: string };
 export type EdSoundItem = { verb: string; sound: "t" | "d" | "id" };
 export type StoryPrompt = { prompt: string; retellAs: string };
-export type VocabItem = { word: string; clue: string; sound: "t" | "d" | "id"; example: string };
-export type VaultCode = { code: string };
-export type BossRound = { kind: "translate" | "fix" | "vocab" | "retell"; seconds: number; items: number };
+export type VerbItem = { base: string; es: string; past: string; sound: "t" | "d" | "id" | "irregular"; example: string };
+export type FlipItem = { affirmative: string; negative: string; question: string };
+export type BossRound = { kind: "translate" | "fix" | "pastform" | "retell"; seconds: number; items: number };
 export type BossEvent = { name: string; effect: string };
 
 export type GameDay = {
@@ -29,7 +29,7 @@ export type GamePack = {
   bombSquad: { translations: TranslationItem[]; echo: EchoItem[] };
   lightningSniper: { items: SniperItem[]; edSounds: EdSoundItem[] };
   storyHeist: { prompts: StoryPrompt[]; secondsPerTurn: number; strikesToExplode: number };
-  wordHeist: { words: VocabItem[]; vault: VaultCode[] };
+  pastSprint: { verbs: VerbItem[]; flips: FlipItem[] };
   bossBattle: { name: string; hp: number; lives: number; rounds: BossRound[]; events: BossEvent[]; taunts: string[] };
   punishments: string[];
   powerCards: { name: string; emoji: string; effect: string }[];

@@ -11,7 +11,7 @@ export const B3_W2: GamePack = {
     { level: "b3", week: 2, day: 1, game: "bomb_squad", title: "Bomb Squad — Translation", grammar: "Regular verbs · -ED (affirmative, negative, questions)", minutes: 10 },
     { level: "b3", week: 2, day: 2, game: "lightning_sniper", title: "Lightning Sniper — Fix the mistake", grammar: "Regular verbs · -ED sounds", minutes: 10 },
     { level: "b3", week: 2, day: 3, game: "story_heist", title: "Story Heist — Time Machine", grammar: "Past · Present · Future comparison", minutes: 10 },
-    { level: "b3", week: 2, day: 4, game: "word_heist", title: "Word Heist + Phonetic Vault", grammar: "Regular verbs vocabulary · -ED sounds", minutes: 10 },
+    { level: "b3", week: 2, day: 4, game: "past_sprint", title: "Past Form Sprint + Flip It", grammar: "Past forms · regular + irregular 50/50 · didn't / did", minutes: 10 },
     { level: "b3", week: 2, day: 5, game: "boss_battle", title: "Boss Battle — The -ED Beast", grammar: "Everything from the week (after the evaluation)", minutes: 10 },
   ],
 
@@ -76,26 +76,33 @@ export const B3_W2: GamePack = {
   },
 
   // ───────────────────────── THURSDAY ─────────────────────────
-  wordHeist: {
-    words: [
-      { word: "watched", clue: "Past of: to look at a movie or TV.", sound: "t", example: "I watched a movie last night." },
-      { word: "cooked", clue: "Past of: to prepare food with heat.", sound: "t", example: "My dad cooked dinner yesterday." },
-      { word: "danced", clue: "Past of: to move your body to music.", sound: "t", example: "We danced at the party." },
-      { word: "finished", clue: "Past of: to complete something.", sound: "t", example: "She finished her homework late." },
-      { word: "walked", clue: "Past of: to go somewhere on foot.", sound: "t", example: "They walked to the park." },
-      { word: "played", clue: "Past of: to have fun with a game or sport.", sound: "d", example: "He played soccer on Sunday." },
-      { word: "cleaned", clue: "Past of: to remove dirt from something.", sound: "d", example: "I cleaned my room this morning." },
-      { word: "called", clue: "Past of: to talk to someone by phone.", sound: "d", example: "My mom called me yesterday." },
-      { word: "studied", clue: "Past of: to learn something for school.", sound: "d", example: "We studied English for an hour." },
-      { word: "arrived", clue: "Past of: to get to a place.", sound: "d", example: "The bus arrived late." },
-      { word: "listened", clue: "Past of: to pay attention to a sound or music.", sound: "d", example: "She listened to music all afternoon." },
-      { word: "visited", clue: "Past of: to go and see a person or place.", sound: "id", example: "I visited my grandmother on Saturday." },
-      { word: "wanted", clue: "Past of: to desire something.", sound: "id", example: "He wanted a new phone." },
-      { word: "needed", clue: "Past of: to require something.", sound: "id", example: "They needed more time." },
-      { word: "started", clue: "Past of: to begin.", sound: "id", example: "The class started at 7." },
-      { word: "decided", clue: "Past of: to make a choice.", sound: "id", example: "We decided to stay home." },
+  pastSprint: {
+    // Base verb + Spanish meaning → students type the PAST form. 50/50: 8 regular + 8 irregular, interleaved.
+    verbs: [
+      { base: "clean", es: "limpiar", past: "cleaned", sound: "d", example: "I cleaned my room yesterday." },
+      { base: "go", es: "ir", past: "went", sound: "irregular", example: "They went to the beach." },
+      { base: "watch", es: "mirar / ver", past: "watched", sound: "t", example: "We watched a movie last night." },
+      { base: "eat", es: "comer", past: "ate", sound: "irregular", example: "I ate pupusas for dinner." },
+      { base: "visit", es: "visitar", past: "visited", sound: "id", example: "She visited her grandmother on Saturday." },
+      { base: "see", es: "ver", past: "saw", sound: "irregular", example: "I saw my cousin at the mall." },
+      { base: "play", es: "jugar", past: "played", sound: "d", example: "He played soccer on Sunday." },
+      { base: "have", es: "tener", past: "had", sound: "irregular", example: "We had a great time." },
+      { base: "cook", es: "cocinar", past: "cooked", sound: "t", example: "My dad cooked dinner yesterday." },
+      { base: "buy", es: "comprar", past: "bought", sound: "irregular", example: "She bought a new phone." },
+      { base: "study", es: "estudiar", past: "studied", sound: "d", example: "We studied English for an hour." },
+      { base: "take", es: "tomar / llevar", past: "took", sound: "irregular", example: "He took the bus to work." },
+      { base: "want", es: "querer", past: "wanted", sound: "id", example: "He wanted a new phone." },
+      { base: "make", es: "hacer", past: "made", sound: "irregular", example: "My mom made breakfast." },
+      { base: "finish", es: "terminar", past: "finished", sound: "t", example: "She finished her homework late." },
+      { base: "get", es: "conseguir / obtener", past: "got", sound: "irregular", example: "I got a new job last month." },
     ],
-    vault: [{ code: "K7-M2-X9" }, { code: "B4-Q8-Z1" }, { code: "R3-J6-W5" }, { code: "H9-D2-T7" }],
+    // Every 4 verbs: one team says the NEGATIVE, the other the QUESTION.
+    flips: [
+      { affirmative: "She cleaned her room yesterday.", negative: "She didn't clean her room yesterday.", question: "Did she clean her room yesterday?" },
+      { affirmative: "They played soccer last weekend.", negative: "They didn't play soccer last weekend.", question: "Did they play soccer last weekend?" },
+      { affirmative: "He studied English for two hours.", negative: "He didn't study English for two hours.", question: "Did he study English for two hours?" },
+      { affirmative: "We visited our grandmother on Sunday.", negative: "We didn't visit our grandmother on Sunday.", question: "Did you visit your grandmother on Sunday?" },
+    ],
   },
 
   // ───────────────────────── FRIDAY ─────────────────────────
@@ -106,7 +113,7 @@ export const B3_W2: GamePack = {
     rounds: [
       { kind: "translate", seconds: 90, items: 4 },
       { kind: "fix", seconds: 90, items: 4 },
-      { kind: "vocab", seconds: 90, items: 4 },
+      { kind: "pastform", seconds: 90, items: 4 },
       { kind: "retell", seconds: 120, items: 1 },
     ],
     events: [
