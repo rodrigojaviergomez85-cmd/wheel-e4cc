@@ -130,3 +130,13 @@ describe("games engine", () => {
     expect(steps.filter((x) => x.kind === "person" && x.round === 3)).toHaveLength(1);
   });
 });
+
+import { B1_W1 as __B1 } from "@/data/games/b1-w1";
+import { buildSteps as __bs } from "@/lib/games/engine";
+describe("B1 word sprint", () => {
+  it("uses Flip It after the 4th word when flips exist", () => {
+    const st = __bs("word_sprint", __B1);
+    expect(st[4]?.kind).toBe("flip");
+    expect(st.some((x) => x.kind === "spell")).toBe(false);
+  });
+});

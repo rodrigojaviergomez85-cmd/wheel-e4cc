@@ -83,8 +83,10 @@ export function buildSteps(game: GameId, pack: GamePack, rng: () => number = Mat
     ws.words.forEach((w, i) => {
       steps.push({ kind: "word", es: w.es, en: w.en, alt: w.alt, category: w.category, seconds: 5 });
       const si = Math.floor(i / 4);
-      const sp = ws.spell[si];
-      if ((i + 1) % 4 === 0 && sp) steps.push({ kind: "spell", word: sp.word, spellTeam: si % 2 === 0 ? 0 : 1, seconds: 15 });
+      const fl = ws.flips?.[si];
+      const sp = ws.spell?.[si];
+      if ((i + 1) % 4 === 0 && fl) steps.push({ kind: "flip", ...fl, startTeam: si % 2 === 0 ? 0 : 1, seconds: 10 });
+      else if ((i + 1) % 4 === 0 && sp) steps.push({ kind: "spell", word: sp.word, spellTeam: si % 2 === 0 ? 0 : 1, seconds: 15 });
     });
     ws.numbers.forEach((n) => steps.push({ kind: "number", say: n.say, write: n.write, seconds: 8 }));
   } else if (game === "past_sprint" && pack.pastSprint) {
