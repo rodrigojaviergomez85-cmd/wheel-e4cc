@@ -36,6 +36,8 @@ export type GState = {
   rage: number;
   /** Flip It sub-step: 0 = NEGATIVE, 1 = QUESTION. */
   flipSub: 0 | 1;
+  /** Flip It sub-step: 0 = NEGATIVE, 1 = QUESTION. */
+  flipSub: 0 | 1;
   story: { prompt: number; round: 1 | 2 | 3; turn: TeamIdx; speaker: string | null };
 };
 
@@ -101,9 +103,7 @@ export function initState(game: GameId, pack: GamePack, names: [string, string])
     teams: [team(names[0]), team(names[1])],
     idx: 0, flipSub: 0, phase: "main", firstTeam: null, streakTeam: null, streakCount: 0,
     bossHp: pack.bossBattle.hp, crit: false, rage: 0,
-    /** Flip It sub-step: 0 = NEGATIVE, 1 = QUESTION. */
-  flipSub: 0 | 1;
-  story: { prompt: 0, round: 1, turn: 0, speaker: null },
+    story: { prompt: 0, round: 1, turn: 0, speaker: null },
   };
 }
 
