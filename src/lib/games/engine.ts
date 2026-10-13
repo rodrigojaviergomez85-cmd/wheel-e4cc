@@ -1,4 +1,4 @@
-import type { BossEvent, GameId, GamePack } from "@/data/games/types";
+import type { BossEvent, GameId, GamePack, PersonCard } from "@/data/games/types";
 
 export type TeamIdx = 0 | 1;
 
@@ -9,7 +9,13 @@ export type Step =
   | { kind: "ed"; verb: string; sound: "t" | "d" | "id"; seconds: number; round?: undefined }
   | { kind: "pastform"; base: string; es: string; past: string; sound: "t" | "d" | "id" | "irregular"; example: string; seconds: number; round?: number | undefined }
   | { kind: "flip"; affirmative: string; negative: string; question: string; startTeam: TeamIdx; seconds: number; round?: undefined }
-  | { kind: "retell"; prompt: string; retellAs: string; seconds: number; round?: number | undefined };
+  | { kind: "retell"; prompt: string; retellAs: string; seconds: number; round?: number | undefined }
+  | { kind: "word"; es: string; en: string; alt?: string[] | undefined; category: string; seconds: number; round?: number | undefined }
+  | { kind: "spell"; word: string; spellTeam: TeamIdx; seconds: number; round?: undefined }
+  | { kind: "number"; say: string; write: string; seconds: number; round?: undefined }
+  | { kind: "person"; card: PersonCard; seconds: number; round?: number | undefined };
+
+export type PersonState = { card: number; round: 1 | 2; turn: TeamIdx; speaker: string | null; ticks: boolean[]; spoke: [number, number]; retellTeam: TeamIdx; retold: number };
 
 export type Team = {
   name: string;
@@ -37,6 +43,7 @@ export type GState = {
   /** Flip It sub-step: 0 = NEGATIVE, 1 = QUESTION. */
   flipSub: 0 | 1;
   story: { prompt: number; round: 1 | 2 | 3; turn: TeamIdx; speaker: string | null };
+  person: PersonState;
 };
 
 export type Effects = {
@@ -70,12 +77,22 @@ export function buildSteps(game: GameId, pack: GamePack, rng: () => number = Mat
     });
   } else if (game === "lightning_sniper") {
     pack.lightningSniper.items.forEach((t) => steps.push({ kind: "fix", ...t, seconds: 8 }));
-    pack.lightningSniper.edSounds.forEach((t) => steps.push({ kind: "ed", ...t, seconds: 8 }));
-  } else if (game === "past_sprint") {
-    pack.pastSprint.verbs.forEach((v, i) => {
+    (pack.lightningSniper.edSounds ?? []).forEach((t) => steps.push({ kind: "ed", ...t, seconds: 8 }));
+  } else if (game === "word_sprint" && pack.wordSprint) {
+    const ws = pack.wordSprint;
+    ws.words.forEach((w, i) => {
+      steps.push({ kind: "word", es: w.es, en: w.en, alt: w.alt, category: w.category, seconds: 5 });
+      const si = Math.floor(i / 4);
+      const sp = ws.spell[si];
+      if ((i + 1) % 4 === 0 && sp) steps.push({ kind: "spell", word: sp.word, spellTeam: si % 2 === 0 ? 0 : 1, seconds: 15 });
+    });
+    ws.numbers.forEach((n) => steps.push({ kind: "number", say: n.say, write: n.write, seconds: 8 }));
+  } else if (game === "past_sprint" && pack.pastSprint) {
+    const ps = pack.pastSprint;
+    ps.verbs.forEach((v, i) => {
       steps.push({ kind: "pastform", ...v, seconds: 5 });
       const fi = Math.floor(i / 4);
-      const f = pack.pastSprint.flips[fi];
+      const f = ps.flips[fi];
       if ((i + 1) % 4 === 0 && f) steps.push({ kind: "flip", ...f, startTeam: fi % 2 === 0 ? 0 : 1, seconds: 10 });
     });
   } else if (game === "boss_battle") {
@@ -84,8 +101,11 @@ export function buildSteps(game: GameId, pack: GamePack, rng: () => number = Mat
       const sec = Math.max(5, Math.round(r.seconds / Math.max(1, r.items)));
       if (r.kind === "translate") pick(pack.bombSquad.translations, r.items).forEach((t) => steps.push({ kind: "translate", es: t.es, en: t.en, alt: t.alt, seconds: sec, round: ri }));
       if (r.kind === "fix") pick(pack.lightningSniper.items, r.items).forEach((t) => steps.push({ kind: "fix", ...t, seconds: sec, round: ri }));
-      if (r.kind === "pastform") pick(pack.pastSprint.verbs, r.items).forEach((t) => steps.push({ kind: "pastform", ...t, seconds: sec, round: ri }));
-      if (r.kind === "retell") pick(pack.storyHeist.prompts, r.items).forEach((t) => steps.push({ kind: "retell", ...t, seconds: r.seconds, round: ri }));
+      if (r.kind === "pastform") pick(pack.pastSprint?.verbs ?? [], r.items).forEach((t) => steps.push({ kind: "pastform", ...t, seconds: sec, round: ri }));
+      if (r.kind === "word") pick(pack.wordSprint?.words ?? [], r.items).forEach((w) => steps.push({ kind: "word", es: w.es, en: w.en, alt: w.alt, category: w.category, seconds: sec, round: ri }));
+      if (r.kind === "person") pick(pack.buildPerson?.cards ?? [], 1).forEach((c) => steps.push({ kind: "person", card: c, seconds: r.seconds, round: ri }));
+      if (false) pick(pack.pastSprint!.verbs, r.items).forEach((t) => steps.push({ kind: "pastform", ...t, seconds: sec, round: ri }));
+      if (r.kind === "retell") pick(pack.storyHeist?.prompts ?? [], r.items).forEach((t) => steps.push({ kind: "retell", ...t, seconds: r.seconds, round: ri }));
     });
   }
   return steps;
@@ -102,10 +122,53 @@ export function initState(game: GameId, pack: GamePack, names: [string, string])
     idx: 0, flipSub: 0, phase: "main", firstTeam: null, streakTeam: null, streakCount: 0,
     bossHp: pack.bossBattle.hp, crit: false, rage: 0,
     story: { prompt: 0, round: 1, turn: 0, speaker: null },
+    person: freshPerson(pack, 0),
   };
 }
 
-const clone = (s: GState): GState => ({ ...s, teams: [{ ...s.teams[0], cards: [...s.teams[0].cards] }, { ...s.teams[1], cards: [...s.teams[1].cards] }], story: { ...s.story } });
+const freshPerson = (pack: GamePack, card: number): PersonState => ({
+  card, round: 1, turn: 0, speaker: null, ticks: (pack.buildPerson?.cards[card]?.facts ?? []).map(() => false), spoke: [0, 0], retellTeam: 1, retold: 0,
+});
+
+const clone = (s: GState): GState => ({
+  ...s,
+  teams: [{ ...s.teams[0], cards: [...s.teams[0].cards] }, { ...s.teams[1], cards: [...s.teams[1].cards] }],
+  story: { ...s.story },
+  person: { ...s.person, ticks: [...s.person.ticks], spoke: [...s.person.spoke] as [number, number] },
+});
+
+/** Build-a-Person: pick the next speaker (A first, then alternating). */
+export function personNextTurn(prev: GState, pickName: (t: TeamIdx) => string): GState {
+  const s = clone(prev);
+  if (s.person.round !== 1) return prev;
+  const turn = s.person.speaker === null ? 0 : other(s.person.turn);
+  s.person.turn = turn;
+  s.person.speaker = pickName(turn);
+  s.person.spoke[turn]++;
+  s.teams[0].frozen = false; s.teams[1].frozen = false;
+  return s;
+}
+
+/** Build-a-Person: BUILD → RETELL (team that spoke less, B if equal) → next card. */
+export function personNextRound(pack: GamePack, prev: GState): GState {
+  const s = clone(prev);
+  if (s.person.round === 1) {
+    const [a, b] = s.person.spoke;
+    s.person = { ...s.person, round: 2, speaker: null, retold: 0, retellTeam: a < b ? 0 : 1 };
+  } else s.person = freshPerson(pack, (s.person.card + 1) % Math.max(1, pack.buildPerson?.cards.length ?? 1));
+  return s;
+}
+
+export function personSetCard(pack: GamePack, prev: GState, card: number): GState {
+  return { ...clone(prev), person: freshPerson(pack, card) };
+}
+
+/** Ticking facts is only a visual aid: never changes score. */
+export function personToggle(prev: GState, i: number): GState {
+  const s = clone(prev);
+  if (i >= 0 && i < s.person.ticks.length) s.person.ticks[i] = !s.person.ticks[i];
+  return s;
+}
 
 /** Can this team press referee buttons right now? */
 /** Whose turn it is in a Flip It sub-step. */
@@ -115,6 +178,8 @@ export function canAnswer(game: GameId, s: GState, team: TeamIdx, step?: Step) {
   const t = s.teams[team];
   if (t.frozen) return false;
   if (step?.kind === "flip" && (s.phase === "done" || flipTeam(step, s) !== team)) return false;
+  if (step?.kind === "spell" && (s.phase === "done" || step.spellTeam !== team)) return false;
+  if (game === "build_person" && s.person.round === 2 && s.person.retellTeam !== team) return false;
   if (game === "boss_battle" && t.lives <= 0) return false;
   return true;
 }
@@ -132,7 +197,7 @@ export function act(game: GameId, pack: GamePack, step: Step | undefined, prev: 
     fn();
   };
   const streak = (team: TeamIdx) => {
-    if (game !== "bomb_squad" && game !== "lightning_sniper" && game !== "past_sprint") return;
+    if (game !== "bomb_squad" && game !== "lightning_sniper" && game !== "past_sprint" && game !== "word_sprint") return;
     if (s.streakTeam === team) s.streakCount++;
     else { s.streakTeam = team; s.streakCount = 1; }
     if (s.streakCount >= 3) { fx.offerCard = team; s.streakCount = 0; s.streakTeam = null; }
@@ -168,9 +233,43 @@ export function act(game: GameId, pack: GamePack, step: Step | undefined, prev: 
     if (a.t === "wrong") {
       penalty(team, () => {
         s.teams[team].strikes++;
-        if (s.teams[team].strikes >= pack.storyHeist.strikesToExplode) { fx.punish = team; fx.explode = team; s.teams[team].strikes = 0; }
+        if (s.teams[team].strikes >= (pack.storyHeist?.strikesToExplode ?? 3)) { fx.punish = team; fx.explode = team; s.teams[team].strikes = 0; }
       });
     } else award(team, s.story.round === 3 ? 2 : 1);
+    return { s, fx };
+  }
+
+  if (game === "build_person") {
+    const bp = pack.buildPerson;
+    if (s.person.round === 1) {
+      if (a.t === "wrong") {
+        penalty(team, () => {
+          s.teams[team].strikes++;
+          if (s.teams[team].strikes >= (bp?.strikesToExplode ?? 3)) { fx.punish = team; s.teams[team].strikes = 0; }
+        });
+      } else award(team, 1);
+    } else {
+      if (a.t === "wrong") penalty(team, () => { s.teams[team].score -= 1; });
+      else {
+        const max = bp?.cards[s.person.card]?.facts.length ?? 0;
+        if (s.person.retold >= max) return { s: prev, fx };
+        s.person.retold++;
+        award(team, 1);
+      }
+    }
+    return { s, fx };
+  }
+
+  if (step?.kind === "word" || step?.kind === "number") {
+    if (a.t === "wrong") penalty(team, () => { s.teams[team].score -= 1; });
+    else { award(team, a.t === "first" ? 2 : 1); if (a.t === "first" && step.kind === "word") streak(team); }
+    return { s, fx };
+  }
+
+  if (step?.kind === "spell") {
+    if (a.t === "wrong") penalty(team, () => { s.teams[other(team)].score += 1; });
+    else award(team, 2);
+    s.phase = "done";
     return { s, fx };
   }
 
@@ -227,6 +326,7 @@ export function nextStep(game: GameId, pack: GamePack, steps: Step[], prev: GSta
   s.phase = "main";
   s.flipSub = 0;
   s.firstTeam = null;
+  if (steps[s.idx]?.kind === "person") { const st = steps[s.idx] as Extract<Step, { kind: "person" }>; s.person = { ...s.person, ticks: st.card.facts.map(() => false) }; }
   s.teams[0].frozen = false;
   s.teams[1].frozen = false;
   if (s.rage > 0) s.rage--;
