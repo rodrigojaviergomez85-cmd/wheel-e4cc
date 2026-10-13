@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { B3_W2 } from "@/data/games/b3-w2";
-import { act, buildSteps, initState, nextStep, type GState } from "@/lib/games/engine";
+import { act, buildSteps, initState, nextStep, personNextRound, personNextTurn, type GState } from "@/lib/games/engine";
+import { B0_W1 } from "@/data/games/b0-w1";
+import { B0_W4 } from "@/data/games/b0-w4";
 import { findGamePack } from "@/data/games";
 
 const names: [string, string] = ["A", "B"];
@@ -9,6 +11,7 @@ describe("games engine", () => {
   it("only BASIC 3 week 2 has a pack", () => {
     expect(findGamePack("b3", 2)).toBeDefined();
     expect(findGamePack("b3", 1)).toBeUndefined();
+    [1, 2, 3, 4].forEach((w) => expect(findGamePack("b0", w)).toBeDefined());
   });
 
   it("bomb squad: wrong cuts fuse 15%, 7th wrong explodes and resets", () => {
@@ -85,5 +88,45 @@ describe("games engine", () => {
   it("boss round 3 uses 4 past-form verbs", () => {
     const steps = buildSteps("boss_battle", B3_W2);
     expect(steps.filter((x) => x.kind === "pastform" && x.round === 2)).toHaveLength(4);
+  });
+
+  it("build-a-person: ✔ +1, 3 strikes punish; retell goes to team that spoke less (B if equal), max = facts", () => {
+    let s = initState("build_person", B0_W1, names);
+    s = personNextTurn(s, () => "Ana");
+    expect(s.person.turn).toBe(0);
+    s = act("build_person", B0_W1, undefined, s, { t: "first", team: 0 }).s;
+    expect(s.teams[0].score).toBe(1);
+    let r = { s, fx: {} as ReturnType<typeof act>["fx"] };
+    for (let i = 0; i < 3; i++) r = act("build_person", B0_W1, undefined, r.s, { t: "wrong", team: 1 });
+    expect(r.fx.punish).toBe(1);
+    expect(r.s.teams[1].strikes).toBe(0);
+    s = personNextRound(B0_W1, r.s);
+    expect(s.person.retellTeam).toBe(1);
+    expect(act("build_person", B0_W1, undefined, s, { t: "plus", team: 0 }).s).toBe(s);
+    for (let i = 0; i < 9; i++) s = act("build_person", B0_W1, undefined, s, { t: "plus", team: 1 }).s;
+    expect(s.teams[1].score).toBe(7);
+    expect(act("build_person", B0_W1, undefined, s, { t: "wrong", team: 1 }).s.teams[1].score).toBe(6);
+  });
+
+  it("word sprint: spell after every 4th word, numbers after 16th; scoring", () => {
+    const steps = buildSteps("word_sprint", B0_W1);
+    expect(steps[0]).toMatchObject({ kind: "word", es: "rojo", en: "red", seconds: 5 });
+    expect(steps[4]).toMatchObject({ kind: "spell", word: "Monday", spellTeam: 0 });
+    expect(steps[9]).toMatchObject({ kind: "spell", spellTeam: 1 });
+    expect(steps[20]).toMatchObject({ kind: "number", write: "22", seconds: 8 });
+    expect(steps).toHaveLength(26);
+    const s0 = initState("word_sprint", B0_W1, names);
+    expect(act("word_sprint", B0_W1, steps[0], s0, { t: "first", team: 0 }).s.teams[0].score).toBe(2);
+    expect(act("word_sprint", B0_W1, steps[0], s0, { t: "plus", team: 0 }).s.teams[0].score).toBe(1);
+    expect(act("word_sprint", B0_W1, steps[0], s0, { t: "wrong", team: 0 }).s.teams[0].score).toBe(-1);
+    expect(act("word_sprint", B0_W1, steps[4], s0, { t: "first", team: 1 }).s).toBe(s0);
+    expect(act("word_sprint", B0_W1, steps[4], s0, { t: "first", team: 0 }).s.teams[0].score).toBe(2);
+    expect(act("word_sprint", B0_W1, steps[4], s0, { t: "wrong", team: 0 }).s.teams[1].score).toBe(1);
+  });
+
+  it("b0 boss rounds: translate → fix → word (4) → person (1)", () => {
+    const steps = buildSteps("boss_battle", B0_W4);
+    expect(steps.filter((x) => x.kind === "word" && x.round === 2)).toHaveLength(4);
+    expect(steps.filter((x) => x.kind === "person" && x.round === 3)).toHaveLength(1);
   });
 });

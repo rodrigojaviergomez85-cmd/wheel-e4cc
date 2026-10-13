@@ -6,7 +6,7 @@ import { findGamePack } from "@/data/games";
 import type { BossEvent, GamePack, GameDay } from "@/data/games/types";
 import { PunishmentWheel } from "@/components/games/PunishmentWheel";
 import {
-  act, buildSteps, canAnswer, flipTeam, giveCard, initState, nextStep, other, playCard,
+  act, buildSteps, canAnswer, flipTeam, giveCard, initState, nextStep, other, personNextRound, personNextTurn, personSetCard, personToggle, playCard,
   type Action, type Effects, type GState, type Step, type TeamIdx,
 } from "@/lib/games/engine";
 import { sfx } from "@/lib/games/sounds";
@@ -65,6 +65,8 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
   const steps = useMemo<Step[]>(() => buildSteps(game, pack), [game, pack]);
   const isStory = game === "story_heist";
   const isBoss = game === "boss_battle";
+  const isPerson = game === "build_person";
+  const isTurns = isStory || isPerson;
 
   const [s, setS] = useState<GState>(() => initState(game, pack, [pack.teams.suggestedNames[0] ?? "Team A", pack.teams.suggestedNames[1] ?? "Team B"]));
   const [history, setHistory] = useState<GState[]>([]);
@@ -85,12 +87,12 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
   const [final, setFinal] = useState<null | "time" | "done" | "boss">(null);
   const [edFeedback, setEdFeedback] = useState<{ team: TeamIdx; ok: boolean } | null>(null);
   const [names, setNames] = useState<[string, string]>(["", ""]);
-  const [setupOpen, setSetupOpen] = useState(isStory);
+  const [setupOpen, setSetupOpen] = useState(isTurns);
   const [muted, setMuted] = useState(false);
   const lastSpeaker = useRef<string | null>(null);
 
   const step = steps[s.idx];
-  const finishedItems = !isStory && s.idx >= steps.length;
+  const finishedItems = !isTurns && s.idx >= steps.length;
 
   // load saved names (team + story students)
   useEffect(() => {
@@ -134,7 +136,7 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
   };
 
   const handleFx = useCallback((fx: Effects) => {
-    if (fx.explode !== undefined && game !== "story_heist") {
+    if (fx.explode !== undefined && game !== "story_heist" && game !== "build_person") {
       sfx.boom();
       setExplosion(fx.explode);
       const t = fx.explode;
@@ -180,7 +182,13 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
     if (isStory) {
       const turn = s.story.speaker === null ? s.story.turn : other(s.story.turn);
       commit({ ...s, teams: [{ ...s.teams[0], frozen: false }, { ...s.teams[1], frozen: false }], story: { ...s.story, turn, speaker: pickSpeaker(turn) } });
-      startItemTimer(pack.storyHeist.secondsPerTurn);
+      startItemTimer(pack.storyHeist?.secondsPerTurn ?? 10);
+      return;
+    }
+    if (isPerson) {
+      if (s.person.round !== 1) return;
+      commit(personNextTurn(s, pickSpeaker));
+      startItemTimer(pack.buildPerson?.secondsPerTurn ?? 6);
       return;
     }
     if (s.idx >= steps.length) return;
@@ -195,9 +203,16 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
     const st = s.story;
     let story = st;
     if (dir === "prompt") story = { prompt: promptIdx ?? st.prompt, round: 1, turn: 0, speaker: null };
-    else story = st.round < 3 ? { ...st, round: (st.round + 1) as 2 | 3, speaker: null } : { prompt: (st.prompt + 1) % pack.storyHeist.prompts.length, round: 1, turn: 0, speaker: null };
+    else story = st.round < 3 ? { ...st, round: (st.round + 1) as 2 | 3, speaker: null } : { prompt: (st.prompt + 1) % (pack.storyHeist?.prompts.length ?? 1), round: 1, turn: 0, speaker: null };
     commit({ ...s, story });
     setItemLeft(0);
+  };
+
+  const personRound = () => {
+    const n = personNextRound(pack, s);
+    commit(n);
+    if (n.person.round === 2) startItemTimer(pack.buildPerson?.retellSeconds ?? 30);
+    else setItemLeft(0);
   };
 
   const undo = () => {
@@ -210,7 +225,7 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
 
   const start = () => {
     setStarted(true);
-    if (isStory) return;
+    if (isTurns) return;
     if (step) startItemTimer(step.seconds);
   };
 
@@ -283,9 +298,10 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
           <p className="font-display text-lg font-semibold">
             <span className="text-accent">{levelLabel} · Week {pack.week} · Day {gd.day}</span> · <span className="text-primary">{gd.title}</span>
           </p>
+          {gd.note && <span className="rounded-full bg-crazy px-3 py-0.5 text-xs font-bold text-crazy-foreground">📝 {gd.note}</span>}
         </div>
         <div className="flex items-center gap-2">
-          {isStory && <button onClick={() => setSetupOpen(true)} className={topBtn}>👥 Names</button>}
+          {isTurns && <button onClick={() => setSetupOpen(true)} className={topBtn}>👥 Names</button>}
           <button onClick={toggleMute} className={topBtn}>{muted ? "🔇" : "🔊"}</button>
           <button onClick={fullscreen} className={topBtn}>⛶</button>
           <button onClick={() => setFinal(isBoss ? "time" : "done")} className={topBtn}>🏁 End</button>
@@ -321,6 +337,12 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
             </div>
           ) : isStory ? (
             <StoryCenter pack={pack} s={s} itemLeft={itemLeft} itemTotal={itemTotal} onPrompt={(i) => storyRound("prompt", i)} onRound={() => storyRound("round")} />
+          ) : isPerson ? (
+            <PersonCenter pack={pack} s={s} itemLeft={itemLeft} itemTotal={itemTotal}
+              onCard={(i) => { commit(personSetCard(pack, s, i)); setItemLeft(0); }}
+              onRound={personRound}
+              onTick={(i) => setS(personToggle(s, i))}
+              teamNames={[s.teams[0].name, s.teams[1].name]} />
           ) : finishedItems ? (
             <div className="flex flex-col items-center gap-4">
               <p className="font-display text-5xl font-bold">All items done 🎉</p>
@@ -333,6 +355,7 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
               edFeedback={edFeedback} total={steps.length}
               onEd={(team, sound) => { if (s.phase === "done") return; doAct({ t: "ed", team, sound }); setEdFeedback({ team, ok: step.kind === "ed" && step.sound === sound }); }}
               teamNames={[s.teams[0].name, s.teams[1].name]}
+              onTick={(i) => setS(personToggle(s, i))}
             />
           ) : null}
         </section>
@@ -346,9 +369,9 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
           {ref("✘A", "Z", () => doAct({ t: "wrong", team: 0 }), "border-2 border-team-a bg-card text-team-a", !ok(0))}
         </div>
         <div className="flex flex-wrap justify-center gap-2">
-          {ref(isStory ? "Next turn" : "Next", "Space", doNext, "bg-accent text-accent-foreground")}
-          {!isStory && ref("Skip", "S", doNext, "bg-muted text-foreground")}
-          {!isStory && ref(revealed ? "Hide" : "Reveal", "R", () => setRevealed((r) => !r), "bg-secondary text-secondary-foreground")}
+          {ref(isTurns ? "Next turn" : "Next", "Space", doNext, "bg-accent text-accent-foreground")}
+          {!isTurns && ref("Skip", "S", doNext, "bg-muted text-foreground")}
+          {!isTurns && ref(revealed ? "Hide" : "Reveal", "R", () => setRevealed((r) => !r), "bg-secondary text-secondary-foreground")}
           <button onClick={() => setCardDrawer(0)} disabled={!started} className="rounded-2xl bg-secondary px-3 py-3 font-display text-lg font-bold disabled:opacity-35">🎁 Card</button>
           <button onClick={() => setPunishQ((q) => [...q, s.teams[0].score <= s.teams[1].score ? 0 : 1])} disabled={!started} className="rounded-2xl bg-crazy px-3 py-3 font-display text-lg font-bold text-crazy-foreground disabled:opacity-35">💥 Punish</button>
           <button onClick={undo} disabled={!history.length} className="rounded-2xl border-2 border-border px-3 py-3 font-display text-lg font-bold disabled:opacity-35">↺ Undo <span className="text-xs opacity-75">(U)</span></button>
@@ -488,7 +511,7 @@ function TeamPanel({ t, s, game, pack, className, onRename, onPlay }: {
           <div className="mt-1 h-4 overflow-hidden rounded-full bg-card/30"><div className="h-full rounded-full bg-accent transition-all" style={{ width: `${team.fuse}%` }} /></div>
         </div>
       ) : null}
-      {game === "story_heist" && <p className="text-center text-3xl font-bold">{team.strikes > 0 ? `⚠️ x${team.strikes}` : "—"}</p>}
+      {(game === "story_heist" || game === "build_person") && <p className="text-center text-3xl font-bold">{team.strikes > 0 ? `⚠️ x${team.strikes}` : "—"}</p>}
       {game === "boss_battle" && <p className="text-center text-sm font-bold">⚔️ Damage dealt: {team.damage}</p>}
       <p className="text-center font-bold">🔥 Streak: {streak}</p>
       <div className="flex flex-wrap justify-center gap-1 text-xs font-bold">
@@ -528,7 +551,8 @@ function ItemTimer({ left, total, label }: { left: number; total: number; label?
   );
 }
 
-function ItemCenter({ step, s, game, itemLeft, itemTotal, revealed, echoHidden, onHideEcho, edFeedback, total, onEd, teamNames }: {
+function ItemCenter({ step, s, game, itemLeft, itemTotal, revealed, echoHidden, onHideEcho, edFeedback, total, onEd, teamNames, onTick }: {
+  onTick: (i: number) => void;
   step: Step; s: GState; game: GameDay["game"]; itemLeft: number; itemTotal: number; revealed: boolean; echoHidden: boolean; onHideEcho: () => void;
   edFeedback: { team: TeamIdx; ok: boolean } | null; total: number; onEd: (t: TeamIdx, sound: "t" | "d" | "id") => void; teamNames: [string, string];
 }) {
@@ -623,6 +647,51 @@ function ItemCenter({ step, s, game, itemLeft, itemTotal, revealed, echoHidden, 
           </>
         );
       })()}
+      {step.kind === "word" && (
+        <>
+          <p className="text-sm font-bold uppercase tracking-widest text-accent">Say / type it in English</p>
+          <span className="rounded-full bg-muted px-4 py-1 text-sm font-bold text-muted-foreground">{step.category}</span>
+          <p className="font-display text-[clamp(64px,7vw,110px)] font-bold leading-none">{step.es}</p>
+          {revealed && <div className={answer}><p className="font-display text-5xl">{step.en}</p>{step.alt?.map((a) => <p key={a} className="text-lg opacity-80">or: {a}</p>)}</div>}
+          <p className="text-sm text-muted-foreground">first ✔ = 2 · + = 1 · ✘ = −1</p>
+        </>
+      )}
+      {step.kind === "spell" && (() => {
+        const shown = revealed || itemTotal - itemLeft < 3;
+        const t = step.spellTeam;
+        return (
+          <>
+            <p className="rounded-full bg-primary px-5 py-1 font-display text-xl font-bold text-primary-foreground">🔤 SPELL IT</p>
+            {shown ? <p className="font-display text-[clamp(64px,7vw,110px)] font-bold leading-none">{step.word}</p> : <p className={cn(big, "text-muted-foreground")}>🙈 Spell it letter by letter!</p>}
+            {s.phase === "done" ? (
+              <p className="font-display text-3xl font-bold text-muted-foreground">Done — press Next</p>
+            ) : (
+              <p className={cn("rounded-2xl px-6 py-3 font-display text-3xl font-bold text-team-foreground", t === 0 ? "bg-team-a" : "bg-team-b")}>
+                {teamNames[t]} spells · {teamNames[other(t)]} types in the chat
+              </p>
+            )}
+            <p className="text-sm text-muted-foreground">✔ = +2 for the spelling team · ✘ = +1 for the other team</p>
+          </>
+        );
+      })()}
+      {step.kind === "number" && (
+        <>
+          <p className="rounded-full bg-accent px-5 py-1 font-display text-xl font-bold text-accent-foreground">🔢 NUMBER BLITZ</p>
+          <p className="text-8xl">🔊</p>
+          <p className={big}>Coach says a number</p>
+          <p className="text-lg text-muted-foreground">Type the digits in the chat!</p>
+          {revealed && <div className={answer}><p className="text-base opacity-80">Coach reads once: {step.say}</p><p className="font-display text-6xl">{step.write}</p></div>}
+        </>
+      )}
+      {step.kind === "person" && (
+        <>
+          <p className="text-sm font-bold uppercase tracking-widest text-accent">Build-a-Person · one sentence each</p>
+          <p className="text-8xl leading-none">{step.card.emoji}</p>
+          <p className="font-display text-4xl font-bold">{step.card.title}</p>
+          <FactList facts={step.card.facts} ticks={s.person.ticks} onTick={onTick} />
+          <Starters starters={step.card.starters} />
+        </>
+      )}
       {step.kind === "retell" && (
         <>
           <p className="text-sm font-bold uppercase tracking-widest text-accent">Final round · Retell</p>
@@ -634,14 +703,81 @@ function ItemCenter({ step, s, game, itemLeft, itemTotal, revealed, echoHidden, 
   );
 }
 
+function FactList({ facts, ticks, onTick }: { facts: string[]; ticks: boolean[]; onTick: (i: number) => void }) {
+  return (
+    <div className="flex flex-wrap justify-center gap-2">
+      {facts.map((f, i) => (
+        <button key={i} onClick={() => onTick(i)} className={cn("rounded-full border-2 px-4 py-1.5 text-lg font-bold", ticks[i] ? "border-primary bg-primary text-primary-foreground" : "border-border")}>
+          {ticks[i] ? "✔" : "○"} {f}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function Starters({ starters }: { starters: string[] }) {
+  return (
+    <div className="flex flex-wrap justify-center gap-1.5">
+      {starters.map((x) => <span key={x} className="rounded-full bg-muted px-3 py-0.5 text-sm text-muted-foreground">{x}</span>)}
+    </div>
+  );
+}
+
+function PersonCenter({ pack, s, itemLeft, itemTotal, onCard, onRound, onTick, teamNames }: {
+  pack: GamePack; s: GState; itemLeft: number; itemTotal: number; onCard: (i: number) => void; onRound: () => void; onTick: (i: number) => void; teamNames: [string, string];
+}) {
+  const cards = pack.buildPerson?.cards ?? [];
+  const c = cards[s.person.card];
+  const p = s.person;
+  const allTicked = p.ticks.length > 0 && p.ticks.every(Boolean);
+  if (!c) return null;
+  return (
+    <>
+      <div className="flex w-full items-center justify-between">
+        <div className="flex gap-1">
+          {cards.map((x, i) => (
+            <button key={i} onClick={() => onCard(i)} className={cn("rounded-full px-3 py-1 text-sm font-bold", i === p.card ? "bg-primary text-primary-foreground" : "border-2 border-border")}>{x.emoji} {i + 1}</button>
+          ))}
+        </div>
+        <span className="rounded-full bg-accent px-4 py-1 font-display font-bold text-accent-foreground">{p.round === 1 ? "ROUND 1 · BUILD" : "ROUND 2 · RETELL"}</span>
+        <ItemTimer left={itemLeft} total={itemTotal} />
+      </div>
+      <p className="text-[clamp(48px,6vh,90px)] leading-none">{c.emoji}</p>
+      <p className="font-display text-4xl font-bold">{c.title}</p>
+      {p.round === 1 ? (
+        <>
+          <FactList facts={c.facts} ticks={p.ticks} onTick={onTick} />
+          <Starters starters={c.starters} />
+          {p.speaker ? (
+            <p className={cn("rounded-3xl px-10 py-2 font-display text-[clamp(36px,4vw,60px)] font-bold text-team-foreground", p.turn === 0 ? "bg-team-a" : "bg-team-b")}>🎤 {p.speaker}</p>
+          ) : (
+            <p className="text-xl text-muted-foreground">Press Next turn (Space) to pick the first speaker</p>
+          )}
+          {allTicked && <p className="font-display text-2xl font-bold text-primary">All facts covered! → Next round</p>}
+          <p className="text-sm text-muted-foreground">One sentence each · ✔ = 1 pt · ✘ = strike (3 strikes = 💥)</p>
+        </>
+      ) : (
+        <>
+          <p className="max-w-3xl font-display text-[clamp(28px,2.8vw,42px)] font-semibold leading-tight">{c.retell}</p>
+          <p className={cn("rounded-3xl px-8 py-3 font-display text-4xl font-bold text-team-foreground", p.retellTeam === 0 ? "bg-team-a" : "bg-team-b")}>🔁 {teamNames[p.retellTeam]} retells</p>
+          <p className="font-display text-2xl font-bold">Facts retold: {p.retold}/{c.facts.length}</p>
+          <p className="text-sm text-muted-foreground">+ = 1 pt per correct fact · ✘ = −1</p>
+        </>
+      )}
+      <button onClick={onRound} className="rounded-full border-2 border-primary px-6 py-2 font-bold text-primary">{p.round === 1 ? "Next round →" : "Next card →"}</button>
+    </>
+  );
+}
+
 function StoryCenter({ pack, s, itemLeft, itemTotal, onPrompt, onRound }: { pack: GamePack; s: GState; itemLeft: number; itemTotal: number; onPrompt: (i: number) => void; onRound: () => void }) {
-  const p = pack.storyHeist.prompts[s.story.prompt];
+  const prompts = pack.storyHeist?.prompts ?? [];
+  const p = prompts[s.story.prompt];
   const label = s.story.round === 1 ? "ROUND 1 · PAST" : s.story.round === 2 ? "ROUND 2 · PRESENT" : "ROUND 3 · FUTURE (2 pts)";
   return (
     <>
       <div className="flex w-full items-center justify-between">
         <div className="flex gap-1">
-          {pack.storyHeist.prompts.map((_, i) => (
+          {prompts.map((_, i) => (
             <button key={i} onClick={() => onPrompt(i)} className={cn("rounded-full px-3 py-1 text-sm font-bold", i === s.story.prompt ? "bg-primary text-primary-foreground" : "border-2 border-border")}>Story {i + 1}</button>
           ))}
         </div>
