@@ -7,8 +7,8 @@ export type Step =
   | { kind: "echo"; en: string; seconds: number; round?: undefined }
   | { kind: "fix"; wrong: string; right: string; hint: string; seconds: number; round?: number | undefined }
   | { kind: "ed"; verb: string; sound: "t" | "d" | "id"; seconds: number; round?: undefined }
-  | { kind: "vocab"; word: string; clue: string; sound: "t" | "d" | "id"; example: string; seconds: number; round?: number | undefined }
-  | { kind: "vault"; code: string; seconds: number; round?: undefined }
+  | { kind: "pastform"; base: string; es: string; past: string; sound: "t" | "d" | "id" | "irregular"; example: string; seconds: number; round?: number | undefined }
+  | { kind: "flip"; affirmative: string; negative: string; question: string; startTeam: TeamIdx; seconds: number; round?: undefined }
   | { kind: "retell"; prompt: string; retellAs: string; seconds: number; round?: number | undefined };
 
 export type Team = {
@@ -34,6 +34,8 @@ export type GState = {
   bossHp: number;
   crit: boolean;
   rage: number;
+  /** Flip It sub-step: 0 = NEGATIVE, 1 = QUESTION. */
+  flipSub: 0 | 1;
   story: { prompt: number; round: 1 | 2 | 3; turn: TeamIdx; speaker: string | null };
 };
 
@@ -47,12 +49,13 @@ export type Effects = {
   bossDead?: boolean;
   event?: BossEvent;
   flash?: string;
+  /** Restart the item timer with this many seconds (e.g. next Flip sub-step). */
+  restartTimer?: number;
 };
 
 export type Action =
   | { t: "first" | "plus" | "wrong"; team: TeamIdx }
-  | { t: "ed"; team: TeamIdx; sound: "t" | "d" | "id" }
-  | { t: "vault"; ok: boolean; dictating: TeamIdx };
+  | { t: "ed"; team: TeamIdx; sound: "t" | "d" | "id" };
 
 export const other = (t: TeamIdx): TeamIdx => (t === 0 ? 1 : 0);
 
@@ -68,11 +71,12 @@ export function buildSteps(game: GameId, pack: GamePack, rng: () => number = Mat
   } else if (game === "lightning_sniper") {
     pack.lightningSniper.items.forEach((t) => steps.push({ kind: "fix", ...t, seconds: 8 }));
     pack.lightningSniper.edSounds.forEach((t) => steps.push({ kind: "ed", ...t, seconds: 8 }));
-  } else if (game === "word_heist") {
-    pack.wordHeist.words.forEach((w, i) => {
-      steps.push({ kind: "vocab", ...w, seconds: 5 });
-      const v = pack.wordHeist.vault[Math.floor(i / 4)];
-      if ((i + 1) % 4 === 0 && v) steps.push({ kind: "vault", code: v.code, seconds: 3 });
+  } else if (game === "past_sprint") {
+    pack.pastSprint.verbs.forEach((v, i) => {
+      steps.push({ kind: "pastform", ...v, seconds: 5 });
+      const fi = Math.floor(i / 4);
+      const f = pack.pastSprint.flips[fi];
+      if ((i + 1) % 4 === 0 && f) steps.push({ kind: "flip", ...f, startTeam: fi % 2 === 0 ? 0 : 1, seconds: 10 });
     });
   } else if (game === "boss_battle") {
     const pick = <T,>(arr: T[], n: number) => [...arr].sort(() => rng() - 0.5).slice(0, n);
@@ -80,7 +84,7 @@ export function buildSteps(game: GameId, pack: GamePack, rng: () => number = Mat
       const sec = Math.max(5, Math.round(r.seconds / Math.max(1, r.items)));
       if (r.kind === "translate") pick(pack.bombSquad.translations, r.items).forEach((t) => steps.push({ kind: "translate", es: t.es, en: t.en, alt: t.alt, seconds: sec, round: ri }));
       if (r.kind === "fix") pick(pack.lightningSniper.items, r.items).forEach((t) => steps.push({ kind: "fix", ...t, seconds: sec, round: ri }));
-      if (r.kind === "vocab") pick(pack.wordHeist.words, r.items).forEach((t) => steps.push({ kind: "vocab", ...t, seconds: sec, round: ri }));
+      if (r.kind === "pastform") pick(pack.pastSprint.verbs, r.items).forEach((t) => steps.push({ kind: "pastform", ...t, seconds: sec, round: ri }));
       if (r.kind === "retell") pick(pack.storyHeist.prompts, r.items).forEach((t) => steps.push({ kind: "retell", ...t, seconds: r.seconds, round: ri }));
     });
   }
@@ -95,7 +99,7 @@ export function initState(game: GameId, pack: GamePack, names: [string, string])
   void game;
   return {
     teams: [team(names[0]), team(names[1])],
-    idx: 0, phase: "main", firstTeam: null, streakTeam: null, streakCount: 0,
+    idx: 0, flipSub: 0, phase: "main", firstTeam: null, streakTeam: null, streakCount: 0,
     bossHp: pack.bossBattle.hp, crit: false, rage: 0,
     story: { prompt: 0, round: 1, turn: 0, speaker: null },
   };
@@ -104,9 +108,13 @@ export function initState(game: GameId, pack: GamePack, names: [string, string])
 const clone = (s: GState): GState => ({ ...s, teams: [{ ...s.teams[0], cards: [...s.teams[0].cards] }, { ...s.teams[1], cards: [...s.teams[1].cards] }], story: { ...s.story } });
 
 /** Can this team press referee buttons right now? */
-export function canAnswer(game: GameId, s: GState, team: TeamIdx) {
+/** Whose turn it is in a Flip It sub-step. */
+export const flipTeam = (step: Extract<Step, { kind: "flip" }>, s: GState): TeamIdx => (s.flipSub === 0 ? step.startTeam : other(step.startTeam));
+
+export function canAnswer(game: GameId, s: GState, team: TeamIdx, step?: Step) {
   const t = s.teams[team];
   if (t.frozen) return false;
+  if (step?.kind === "flip" && (s.phase === "done" || flipTeam(step, s) !== team)) return false;
   if (game === "boss_battle" && t.lives <= 0) return false;
   return true;
 }
@@ -124,21 +132,12 @@ export function act(game: GameId, pack: GamePack, step: Step | undefined, prev: 
     fn();
   };
   const streak = (team: TeamIdx) => {
-    if (game !== "bomb_squad" && game !== "lightning_sniper") return;
+    if (game !== "bomb_squad" && game !== "lightning_sniper" && game !== "past_sprint") return;
     if (s.streakTeam === team) s.streakCount++;
     else { s.streakTeam = team; s.streakCount = 1; }
     if (s.streakCount >= 3) { fx.offerCard = team; s.streakCount = 0; s.streakTeam = null; }
   };
 
-  if (a.t === "vault") {
-    if (a.ok) {
-      const take = Math.min(5, s.teams[other(a.dictating)].score);
-      s.teams[other(a.dictating)].score -= take;
-      s.teams[a.dictating].score += 5;
-    } else s.teams[other(a.dictating)].score += 2;
-    s.phase = "done";
-    return { s, fx };
-  }
   if (a.t === "ed") {
     if (step?.kind === "ed" && step.sound === a.sound) award(a.team, 2);
     s.phase = "done";
@@ -146,7 +145,7 @@ export function act(game: GameId, pack: GamePack, step: Step | undefined, prev: 
   }
 
   const { team } = a;
-  if (!canAnswer(game, prev, team)) return { s: prev, fx };
+  if (!canAnswer(game, prev, team, step)) return { s: prev, fx };
 
   if (game === "boss_battle") {
     if (a.t === "wrong") {
@@ -196,10 +195,19 @@ export function act(game: GameId, pack: GamePack, step: Step | undefined, prev: 
     return { s, fx };
   }
 
-  if (step?.kind === "vocab") {
+  if (step?.kind === "flip") {
+    if (a.t === "wrong") penalty(team, () => { s.teams[team].score -= 1; });
+    else award(team, 2);
+    if (s.flipSub === 0) { s.flipSub = 1; fx.restartTimer = step.seconds; }
+    else s.phase = "done";
+    return { s, fx };
+  }
+
+  if (step?.kind === "pastform") {
     if (s.phase === "main") {
-      if (a.t === "first") { award(team, 2); s.firstTeam = team; s.phase = "sentence"; fx.startSentence = true; }
+      if (a.t === "first") { award(team, 2); s.firstTeam = team; s.phase = "sentence"; fx.startSentence = true; streak(team); }
       else if (a.t === "plus") award(team, 1);
+      else penalty(team, () => { s.teams[team].score -= 1; });
     } else if (s.phase === "sentence" && s.firstTeam === team) {
       if (a.t === "wrong") penalty(team, () => { s.teams[team].score -= 2; });
       else award(team, 1);
@@ -217,6 +225,7 @@ export function nextStep(game: GameId, pack: GamePack, steps: Step[], prev: GSta
   const oldRound = steps[s.idx]?.round;
   s.idx++;
   s.phase = "main";
+  s.flipSub = 0;
   s.firstTeam = null;
   s.teams[0].frozen = false;
   s.teams[1].frozen = false;

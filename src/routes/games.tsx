@@ -6,7 +6,7 @@ import { findGamePack } from "@/data/games";
 import type { BossEvent, GamePack, GameDay } from "@/data/games/types";
 import { PunishmentWheel } from "@/components/games/PunishmentWheel";
 import {
-  act, buildSteps, canAnswer, giveCard, initState, nextStep, other, playCard,
+  act, buildSteps, canAnswer, flipTeam, giveCard, initState, nextStep, other, playCard,
   type Action, type Effects, type GState, type Step, type TeamIdx,
 } from "@/lib/games/engine";
 import { sfx } from "@/lib/games/sounds";
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/games")({
       { title: "Games Arena — E4CC Question Wheel" },
       { name: "description", content: "10-minute end-of-class team games for English4CallCenters coaches to project on Zoom." },
       { property: "og:title", content: "Games Arena — E4CC" },
-      { property: "og:description", content: "Team games: Bomb Squad, Lightning Sniper, Story Heist, Word Heist and Boss Battle." },
+      { property: "og:description", content: "Team games: Bomb Squad, Lightning Sniper, Story Heist, Past Form Sprint and Boss Battle." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -148,6 +148,7 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
       setTimeout(() => setTaunt(null), 2600);
     }
     if (fx.startSentence) startItemTimer(10);
+    if (fx.restartTimer) { setRevealed(false); startItemTimer(fx.restartTimer); }
     if (fx.bossDead) { sfx.horn(); setFinal("boss"); }
     if (fx.event) { setEvent(fx.event); setTimeout(() => setEvent(null), 3000); }
     if (fx.flash) { setFlash({ big: "🛡️", text: fx.flash }); setTimeout(() => setFlash(null), 1500); }
@@ -159,7 +160,7 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
     if (!started || final) return;
     const { s: n, fx } = act(game, pack, step, s, a);
     if (n === s) return;
-    if (a.t !== "wrong" && a.t !== "vault") sfx.ding();
+    if (a.t !== "wrong") sfx.ding();
     commit(n);
     handleFx(fx);
   };
@@ -257,7 +258,6 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
   const toggleMute = () => setMuted((m) => { localStorage.setItem("e4cc-muted", m ? "0" : "1"); return !m; });
   const fullscreen = () => (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen());
   const mmss = `${Math.floor(session / 60)}:${String(session % 60).padStart(2, "0")}`;
-  const vaultDictating: TeamIdx = 0;
 
   const card = (name: string) => pack.powerCards.find((c) => c.name === name);
   const onPlayCard = (team: TeamIdx, i: number) => {
@@ -271,7 +271,7 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
       {label} <span className="text-xs opacity-75">({key})</span>
     </button>
   );
-  const ok = (t: TeamIdx) => canAnswer(game, s, t);
+  const ok = (t: TeamIdx) => canAnswer(game, s, t, step);
   const topBtn = "rounded-full border-2 border-border bg-card px-3 py-1.5 text-sm font-bold hover:border-primary";
 
   return (
@@ -332,7 +332,6 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
               revealed={revealed} echoHidden={echoHidden} onHideEcho={() => setEchoHidden(true)}
               edFeedback={edFeedback} total={steps.length}
               onEd={(team, sound) => { if (s.phase === "done") return; doAct({ t: "ed", team, sound }); setEdFeedback({ team, ok: step.kind === "ed" && step.sound === sound }); }}
-              onVault={(okv) => doAct({ t: "vault", ok: okv, dictating: vaultDictating })}
               teamNames={[s.teams[0].name, s.teams[1].name]}
             />
           ) : null}
@@ -529,9 +528,9 @@ function ItemTimer({ left, total, label }: { left: number; total: number; label?
   );
 }
 
-function ItemCenter({ step, s, game, itemLeft, itemTotal, revealed, echoHidden, onHideEcho, edFeedback, total, onEd, onVault, teamNames }: {
+function ItemCenter({ step, s, game, itemLeft, itemTotal, revealed, echoHidden, onHideEcho, edFeedback, total, onEd, teamNames }: {
   step: Step; s: GState; game: GameDay["game"]; itemLeft: number; itemTotal: number; revealed: boolean; echoHidden: boolean; onHideEcho: () => void;
-  edFeedback: { team: TeamIdx; ok: boolean } | null; total: number; onEd: (t: TeamIdx, sound: "t" | "d" | "id") => void; onVault: (ok: boolean) => void; teamNames: [string, string];
+  edFeedback: { team: TeamIdx; ok: boolean } | null; total: number; onEd: (t: TeamIdx, sound: "t" | "d" | "id") => void; teamNames: [string, string];
 }) {
   const big = "font-display text-[clamp(40px,4.4vw,64px)] font-semibold leading-tight";
   const answer = "rounded-2xl bg-secondary px-6 py-3 text-2xl font-bold text-secondary-foreground";
@@ -584,29 +583,46 @@ function ItemCenter({ step, s, game, itemLeft, itemTotal, revealed, echoHidden, 
           {revealed && !edFeedback && <div className={answer}>{SOUND_LABEL[step.sound]}</div>}
         </>
       )}
-      {step.kind === "vocab" && (
+      {step.kind === "pastform" && (
         <>
-          <p className="text-sm font-bold uppercase tracking-widest text-accent">Guess the word</p>
-          <p className={big}>{step.clue}</p>
+          <p className="text-sm font-bold uppercase tracking-widest text-accent">Say / type the past form</p>
+          <p className="font-display text-[clamp(64px,7vw,110px)] font-bold leading-none">{step.base}</p>
+          <p className="text-2xl text-muted-foreground">{step.es}</p>
           {s.phase === "sentence" && s.firstTeam !== null && (
             <p className="rounded-full bg-accent px-5 py-2 font-display text-2xl font-bold text-accent-foreground">
-              {teamNames[s.firstTeam]}: say a sentence in the PAST with the word! (✔ +1 · ✘ −2)
+              {teamNames[s.firstTeam]}: say a sentence in the PAST with the verb! (✔ +1 · ✘ −2)
             </p>
           )}
-          {revealed && <div className={answer}>{step.word} · {SOUND_LABEL[step.sound]}<p className="text-lg opacity-80">{step.example}</p></div>}
+          {revealed && (
+            <div className={answer}>
+              <p className="font-display text-5xl">{step.past}</p>
+              <span className={cn("mt-2 inline-block rounded-full px-4 py-1 text-lg font-bold", step.sound === "irregular" ? "bg-crazy text-crazy-foreground" : "bg-primary text-primary-foreground")}>
+                {step.sound === "irregular" ? "IRREGULAR" : SOUND_LABEL[step.sound]}
+              </span>
+              <p className="mt-2 text-lg opacity-80">{step.example}</p>
+            </div>
+          )}
         </>
       )}
-      {step.kind === "vault" && (
-        <>
-          <p className="rounded-full bg-primary px-5 py-1 font-display text-xl font-bold text-primary-foreground">🔐 PHONETIC VAULT</p>
-          {itemLeft > 0 || revealed ? <p className="font-display text-8xl font-bold tracking-widest">{step.code}</p> : <p className={cn(big, "text-muted-foreground")}>🔒 Code hidden</p>}
-          <p className="text-lg">{teamNames[0]} dictates it with the phonetic alphabet · {teamNames[1]} types it in the chat</p>
-          <div className="flex gap-3">
-            <button disabled={s.phase === "done"} onClick={() => onVault(true)} className="rounded-2xl bg-team-a px-6 py-3 font-display text-xl font-bold text-team-foreground disabled:opacity-40">🔓 Opened → {teamNames[0]} steals 5</button>
-            <button disabled={s.phase === "done"} onClick={() => onVault(false)} className="rounded-2xl bg-team-b px-6 py-3 font-display text-xl font-bold text-team-foreground disabled:opacity-40">🔒 Failed → {teamNames[1]} +2</button>
-          </div>
-        </>
-      )}
+      {step.kind === "flip" && (() => {
+        const t = flipTeam(step, s);
+        const neg = s.flipSub === 0;
+        return (
+          <>
+            <p className="rounded-full bg-primary px-5 py-1 font-display text-xl font-bold text-primary-foreground">🔄 FLIP IT</p>
+            <p className={big}>{step.affirmative}</p>
+            {s.phase === "done" ? (
+              <p className="font-display text-3xl font-bold text-muted-foreground">Flip done — press Next</p>
+            ) : (
+              <p className={cn("rounded-2xl px-6 py-3 font-display text-4xl font-bold text-team-foreground", t === 0 ? "bg-team-a" : "bg-team-b")}>
+                {teamNames[t]} → {neg ? "NEGATIVE ✘" : "QUESTION ?"}
+              </p>
+            )}
+            <p className="text-sm text-muted-foreground">✔ = +2 · ✘ = −1 · then the other team</p>
+            {revealed && s.phase !== "done" && <div className={answer}>{neg ? step.negative : step.question}</div>}
+          </>
+        );
+      })()}
       {step.kind === "retell" && (
         <>
           <p className="text-sm font-bold uppercase tracking-widest text-accent">Final round · Retell</p>

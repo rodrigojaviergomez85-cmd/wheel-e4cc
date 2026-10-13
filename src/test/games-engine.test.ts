@@ -54,4 +54,36 @@ describe("games engine", () => {
     expect(r.s.teams[0].lives).toBeGreaterThanOrEqual(1);
     expect(r.fx.event).toBeDefined();
   });
+
+  it("past sprint: first = +2 and sentence phase (✔ +1, ✘ −2); main ✘ = −1", () => {
+    const steps = buildSteps("past_sprint", B3_W2);
+    expect(steps[0]).toMatchObject({ kind: "pastform", base: "clean", seconds: 5 });
+    const s0 = initState("past_sprint", B3_W2, names);
+    const r = act("past_sprint", B3_W2, steps[0], s0, { t: "first", team: 0 });
+    expect(r.s.teams[0].score).toBe(2);
+    expect(r.fx.startSentence).toBe(true);
+    expect(act("past_sprint", B3_W2, steps[0], r.s, { t: "wrong", team: 0 }).s.teams[0].score).toBe(0);
+    expect(act("past_sprint", B3_W2, steps[0], r.s, { t: "first", team: 0 }).s.teams[0].score).toBe(3);
+    expect(act("past_sprint", B3_W2, steps[1], s0, { t: "wrong", team: 1 }).s.teams[1].score).toBe(-1);
+  });
+
+  it("flip: after every 4th verb, alternates starting team; only active team can answer", () => {
+    const steps = buildSteps("past_sprint", B3_W2);
+    const f1 = steps[4]!, f2 = steps[9]!;
+    expect(f1).toMatchObject({ kind: "flip", startTeam: 0 });
+    expect(f2).toMatchObject({ kind: "flip", startTeam: 1 });
+    let s = initState("past_sprint", B3_W2, names);
+    expect(act("past_sprint", B3_W2, f1, s, { t: "first", team: 1 }).s).toBe(s);
+    const r = act("past_sprint", B3_W2, f1, s, { t: "first", team: 0 });
+    expect(r.s.teams[0].score).toBe(2);
+    expect(r.fx.restartTimer).toBe(10);
+    s = act("past_sprint", B3_W2, f1, r.s, { t: "wrong", team: 1 }).s;
+    expect(s.teams[1].score).toBe(-1);
+    expect(s.phase).toBe("done");
+  });
+
+  it("boss round 3 uses 4 past-form verbs", () => {
+    const steps = buildSteps("boss_battle", B3_W2);
+    expect(steps.filter((x) => x.kind === "pastform" && x.round === 2)).toHaveLength(4);
+  });
 });
