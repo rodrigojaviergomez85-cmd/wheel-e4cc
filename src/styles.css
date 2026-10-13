@@ -35,6 +35,9 @@
   --color-crazy: var(--crazy);
   --color-crazy-foreground: var(--crazy-foreground);
   --color-overlay: var(--overlay);
+  --color-team-a: var(--team-a);
+  --color-team-b: var(--team-b);
+  --color-team-foreground: var(--team-foreground);
 }
 
 :root {
@@ -62,6 +65,9 @@
   --crazy: oklch(0.65 0.25 340);
   --crazy-foreground: oklch(0.99 0 0);
   --overlay: oklch(0.15 0.05 265 / 0.75);
+  --team-a: oklch(0.6 0.23 25);
+  --team-b: oklch(0.55 0.2 255);
+  --team-foreground: oklch(0.99 0 0);
 
   --seg-1: oklch(0.63 0.24 25);
   --seg-2: oklch(0.72 0.19 55);
@@ -89,3 +95,8 @@
 }
 
 @utility font-display { font-family: var(--font-display); }
+
+@keyframes shake { 0%,100% { transform: translateX(0) } 20% { transform: translateX(-14px) } 40% { transform: translateX(12px) } 60% { transform: translateX(-8px) } 80% { transform: translateX(6px) } }
+@utility animate-shake { animation: shake 0.5s ease-in-out; }
+@keyframes bomb-pulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.08) } }
+@utility animate-bomb { animation: bomb-pulse 0.8s ease-in-out infinite; }
