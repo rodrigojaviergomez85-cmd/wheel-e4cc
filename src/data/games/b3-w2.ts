@@ -11,8 +11,8 @@ export const B3_W2: GamePack = {
     { level: "b3", week: 2, day: 1, game: "bomb_squad", title: "Bomb Squad — Translation", grammar: "Regular verbs · -ED (affirmative, negative, questions)", minutes: 10 },
     { level: "b3", week: 2, day: 2, game: "lightning_sniper", title: "Lightning Sniper — Fix the mistake", grammar: "Regular verbs · -ED sounds", minutes: 10 },
     { level: "b3", week: 2, day: 3, game: "story_heist", title: "Story Heist — Time Machine", grammar: "Past · Present · Future comparison", minutes: 10 },
-    { level: "b3", week: 2, day: 4, game: "past_sprint", title: "Past Form Sprint + Flip It", grammar: "Past forms · regular + irregular 50/50 · didn't / did", minutes: 10 },
-    { level: "b3", week: 2, day: 5, game: "boss_battle", title: "Boss Battle — The -ED Beast", grammar: "Everything from the week (after the evaluation)", minutes: 10 },
+    { level: "b3", week: 2, day: 4, game: "past_sprint", title: "Past Form Sprint + Flip It", grammar: "Past forms · regular + irregular 50/50 · didn't / did", minutes: 10, note: "After the book quiz" },
+    { level: "b3", week: 2, day: 5, game: "boss_battle", title: "Boss Battle — The -ED Beast", grammar: "Everything from the week", minutes: 10, note: "After the evaluation" },
   ],
 
   // ───────────────────────── MONDAY ─────────────────────────
@@ -98,9 +98,9 @@ export const B3_W2: GamePack = {
     ],
     // Every 4 verbs: one team says the NEGATIVE, the other the QUESTION.
     flips: [
-      { affirmative: "She cleaned her room yesterday.", negative: "She didn't clean her room yesterday.", question: "Did she clean her room yesterday?" },
+      { affirmative: "She cleaned the kitchen yesterday.", negative: "She didn't clean the kitchen yesterday.", question: "Did she clean the kitchen yesterday?" },
       { affirmative: "They played soccer last weekend.", negative: "They didn't play soccer last weekend.", question: "Did they play soccer last weekend?" },
-      { affirmative: "He studied English for two hours.", negative: "He didn't study English for two hours.", question: "Did he study English for two hours?" },
+      { affirmative: "He studied math for two hours.", negative: "He didn't study math for two hours.", question: "Did he study math for two hours?" },
       { affirmative: "We visited our grandmother on Sunday.", negative: "We didn't visit our grandmother on Sunday.", question: "Did you visit your grandmother on Sunday?" },
     ],
   },
