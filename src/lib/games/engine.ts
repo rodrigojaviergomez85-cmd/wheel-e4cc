@@ -36,8 +36,6 @@ export type GState = {
   rage: number;
   /** Flip It sub-step: 0 = NEGATIVE, 1 = QUESTION. */
   flipSub: 0 | 1;
-  /** Flip It sub-step: 0 = NEGATIVE, 1 = QUESTION. */
-  flipSub: 0 | 1;
   story: { prompt: number; round: 1 | 2 | 3; turn: TeamIdx; speaker: string | null };
 };
 
