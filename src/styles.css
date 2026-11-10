@@ -100,3 +100,78 @@
 @utility animate-shake { animation: shake 0.5s ease-in-out; }
 @keyframes bomb-pulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.08) } }
 @utility animate-bomb { animation: bomb-pulse 0.8s ease-in-out infinite; }
+
+/* Arena FX tokens: backgrounds, gradients and shadows stay theme-owned. */
+:root {
+  --arena-charcoal: oklch(0.14 0.015 260);
+  --arena-navy: oklch(0.24 0.035 255);
+  --arena-violet: oklch(0.25 0.09 305);
+  --arena-dark: oklch(0.1 0.015 300);
+  --arena-bomb-bg: linear-gradient(145deg, var(--arena-navy), var(--arena-charcoal));
+  --arena-boss-bg: radial-gradient(ellipse at 50% 0%, oklch(0.55 0.08 305 / 0.22), transparent 65%), linear-gradient(150deg, var(--arena-violet), var(--arena-dark));
+  --arena-hazard: repeating-linear-gradient(135deg, var(--accent) 0 12px, var(--arena-charcoal) 12px 24px);
+  --arena-amber-glow: 0 0 18px oklch(0.769 0.165 70.1 / 0.2);
+  --arena-float-shadow: 0 2px 4px var(--arena-charcoal);
+  --arena-vignette: inset 0 0 70px oklch(0.577 0.245 27.325 / 0.4);
+  --boss-healthy: linear-gradient(90deg, var(--seg-10), var(--seg-4));
+  --boss-warning: linear-gradient(90deg, var(--seg-2), var(--accent));
+  --boss-danger: linear-gradient(90deg, var(--seg-9), var(--destructive));
+  --boss-body-0: var(--seg-7); --boss-body-1: var(--seg-5); --boss-body-2: var(--seg-4);
+  --boss-body-3: var(--seg-8); --boss-body-4: var(--seg-2); --boss-body-5: var(--seg-6);
+}
+.arena-bomb { background: var(--arena-bomb-bg); }
+.arena-boss { background: var(--arena-boss-bg); }
+.arena-bomb > header .text-primary, .arena-boss > header .text-primary { color: var(--team-foreground); }
+.arena-bomb::before, .arena-bomb::after { content: ''; position: absolute; left: 0; right: 0; height: 7px; background: var(--arena-hazard); opacity: .35; pointer-events: none; }
+.arena-bomb::before { top: 0; } .arena-bomb::after { bottom: 0; }
+.arena-bomb .arena-center { border: 1px solid var(--accent); box-shadow: var(--arena-amber-glow); }
+.arena-vignette { position: absolute; inset: 0; pointer-events: none; box-shadow: var(--arena-vignette); z-index: 20; animation: fx-flicker 2s ease-in-out infinite; }
+@keyframes fx-pop { 0%,100% { transform: scale(1); } 45% { transform: scale(1.22); } }
+@keyframes fx-rise { 0% { opacity: 0; transform: translateY(8px); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-48px); } }
+@keyframes fx-shake { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-7px); } 40%,80% { transform: translateX(7px); } }
+@keyframes fx-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fx-soft-fade { from { opacity: 1; } to { opacity: 0; } }
+@keyframes fx-enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fx-flash { 0%,100% { opacity: 0; } 20% { opacity: .36; } }
+@keyframes fx-flicker { 0%,100% { opacity: .5; } 50% { opacity: 1; } }
+@keyframes fx-wobble { 0%,100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg) scale(1.04); } }
+@keyframes fx-attack { 0%,100% { transform: scale(1); } 40% { transform: scale(1.18) translateY(5px); } }
+@keyframes fx-defeat { 20%,60% { transform: translateX(-5px); } 40% { transform: translateX(5px); } 100% { transform: scale(.2); opacity: 0; } }
+.fx-score { animation: fx-pop 350ms ease-out; }
+.fx-float { position: absolute; left: 0; right: 0; top: 8px; z-index: 5; pointer-events: none; text-align: center; font-weight: 900; color: var(--team-foreground); text-shadow: var(--arena-float-shadow); animation: fx-rise 900ms ease-out both; }
+.fx-panel-wrong { animation: fx-shake 350ms ease-out; }
+.fx-panel-flash { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: var(--team-foreground); animation: fx-flash 350ms both; }
+.fx-panel-flash.wrong { background: var(--arena-charcoal); }
+.fx-panel-flash.correct { box-shadow: inset 0 0 25px var(--team-tone); }
+.arena-team-a { --team-tone: var(--team-a); } .arena-team-b { --team-tone: var(--team-b); }
+.fx-panel-wrong-alt { animation: fx-shake-alt 350ms ease-out; }
+@keyframes fx-shake-alt { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-7px); } 40%,80% { transform: translateX(7px); } }
+.arena-fx-off .fx-bomb { font-size: 72px; } .arena-fx-off .fx-bomb > span { display: none; }
+.fx-rage { position: relative; }
+.fx-rage::before { content: ''; position: absolute; inset: 4px; border-radius: 50%; box-shadow: 0 0 16px var(--destructive); pointer-events: none; animation: fx-flicker 1s infinite; }
+.fx-fire { animation: fx-flicker 700ms ease-in-out infinite; }
+.fx-enter { animation: fx-enter 200ms ease-out; }
+.fx-timer { animation: fx-pop 300ms ease-out; }
+.fx-fuse-fill, .fx-hp-fill { transform-origin: left; transition: transform 350ms ease-out; }
+.fx-fuse-danger { background: var(--destructive); animation: fx-flicker 1s ease-in-out infinite; }
+.fx-spark { position: absolute; top: -7px; transform: translateX(-50%); transition: left 350ms ease-out; animation: fx-flicker 800ms ease-in-out infinite; }
+.fx-bomb { position: relative; font-size: 88px; line-height: 1; animation: fx-wobble 1.4s ease-in-out infinite; }
+.fx-bomb.warning { animation-duration: 850ms; } .fx-bomb.danger { animation-duration: 450ms; }
+.fx-bomb > span { position: absolute; right: 8px; top: -8px; font-size: 24px; animation: fx-flicker 600ms infinite; }
+.fx-explosion { position: fixed; inset: 0; z-index: 59; pointer-events: none; animation: fx-shake 350ms ease-out; }
+.fx-explosion::before, .fx-explosion::after { content: ''; position: absolute; inset: 0; animation: fx-flash 500ms both; background: var(--team-foreground); }
+.fx-explosion::after { background: var(--accent); animation-delay: 90ms; }
+.fx-monster-hit { animation: fx-shake 350ms ease-out; }
+.fx-monster-hit::after { content: ''; position: absolute; inset: 0; background: var(--team-foreground); border-radius: 50%; animation: fx-flash 250ms both; }
+.fx-monster-attack { animation: fx-attack 350ms ease-out; }
+.fx-monster-dead { animation: fx-defeat 700ms forwards; }
+.fx-heart-lost { display: inline-block; animation: fx-shake 350ms, fx-flash 600ms; }
+.fx-winner { animation: fx-pop 500ms ease-out; transform: scale(1.06); }
+.arena-fx-off *, .arena-fx-off *::before, .arena-fx-off *::after { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .arena-fx-on *, .arena-fx-on *::before, .arena-fx-on *::after { animation: none !important; transition: none !important; }
+  .arena-fx-on .fx-enter, .arena-fx-on .fx-float { animation: fx-fade 200ms both !important; }
+  .arena-fx-on .fx-float { animation: fx-soft-fade 900ms both !important; }
+  .arena-fx-on .fx-panel-flash, .arena-fx-on .fx-explosion, .arena-fx-on .fx-monster-hit::after { display: none; }
+  .arena-fx-on .fx-winner { transform: none; }
+}
