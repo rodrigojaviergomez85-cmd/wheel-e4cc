@@ -130,6 +130,7 @@
 @keyframes fx-rise { 0% { opacity: 0; transform: translateY(8px); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-48px); } }
 @keyframes fx-shake { 0%,100% { transform: translateX(0); } 20%,60% { transform: translateX(-7px); } 40%,80% { transform: translateX(7px); } }
 @keyframes fx-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fx-soft-fade { from { opacity: 1; } to { opacity: 0; } }
 @keyframes fx-enter { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes fx-flash { 0%,100% { opacity: 0; } 20% { opacity: .36; } }
 @keyframes fx-flicker { 0%,100% { opacity: .5; } 50% { opacity: 1; } }
@@ -170,7 +171,7 @@
 @media (prefers-reduced-motion: reduce) {
   .arena-fx-on *, .arena-fx-on *::before, .arena-fx-on *::after { animation: none !important; transition: none !important; }
   .arena-fx-on .fx-enter, .arena-fx-on .fx-float { animation: fx-fade 200ms both !important; }
-  .arena-fx-on .fx-float { animation: fx-flash 900ms both !important; }
+  .arena-fx-on .fx-float { animation: fx-soft-fade 900ms both !important; }
   .arena-fx-on .fx-panel-flash, .arena-fx-on .fx-explosion, .arena-fx-on .fx-monster-hit::after { display: none; }
   .arena-fx-on .fx-winner { transform: none; }
 }

@@ -4,7 +4,7 @@ export type Reaction = { id: number; correct: boolean; text: string; lostLives: 
 export type BossReaction = { id: number; damage: number; attack: boolean };
 
 export function CountedScore({ value, enabled }: { value: number; enabled: boolean }) {
-  const [shown, setShown] = useState(value);
+  const [shown, setShown] = useState(enabled ? 0 : value);
   useEffect(() => {
     if (!enabled || window.matchMedia("(prefers-reduced-motion: reduce)").matches) { setShown(value); return; }
     let frame = 0;
