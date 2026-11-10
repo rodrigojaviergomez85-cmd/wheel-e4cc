@@ -524,7 +524,7 @@ function TeamPanel({ t, s, game, pack, className, onRename, onPlay, enabled, hin
   return (
     <aside className={cn("flex min-h-0 flex-col gap-2 overflow-y-auto rounded-3xl p-3 text-team-foreground shadow-xl", game === "boss_battle" && "gap-1", color, className, team.frozen && "opacity-60")}>
       <input value={team.name} onChange={(e) => onRename(e.target.value)} className="w-full rounded-xl bg-transparent text-center font-display text-2xl font-bold outline-none focus:bg-card/20" aria-label="Team name" />
-      <p className="text-center font-display text-6xl font-bold leading-none tabular-nums">{team.score}</p>
+      <p className={cn("text-center font-display text-6xl font-bold leading-none tabular-nums", game === "boss_battle" && "text-5xl")}>{team.score}</p>
       {game === "boss_battle" ? (
         <p className="text-center text-2xl">{Array.from({ length: pack.bossBattle.lives }, (_, i) => (i < team.lives ? "❤️" : "🖤")).join("")}</p>
       ) : game === "bomb_squad" ? (
@@ -559,7 +559,7 @@ function TeamPanel({ t, s, game, pack, className, onRename, onPlay, enabled, hin
           return c ? (
             <Button key={i} variant="secondary" onClick={() => onPlay(i)} className="h-9 w-full gap-1 bg-card px-1 font-display text-sm font-bold text-foreground">{c.emoji} {c.name}</Button>
           ) : (
-            <div key={i} className="rounded-xl border-2 border-dashed border-card/40 py-2 text-center text-sm opacity-60">empty</div>
+            <div key={i} className="rounded-xl border-2 border-dashed border-card/40 py-1 text-center text-sm opacity-60">empty</div>
           );
         })}
       </div>
