@@ -11,6 +11,9 @@ import {
 } from "@/lib/games/engine";
 import { sfx } from "@/lib/games/sounds";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { correctHint, panelAction, panelCanAnswer, refereeSnapshot, type RefereeSnapshot } from "@/lib/games/referee";
 
 type Search = { level: string; week: number; day: number };
 
@@ -69,7 +72,8 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
   const isTurns = isStory || isPerson;
 
   const [s, setS] = useState<GState>(() => initState(game, pack, [pack.teams.suggestedNames[0] ?? "Team A", pack.teams.suggestedNames[1] ?? "Team B"]));
-  const [history, setHistory] = useState<GState[]>([]);
+  const [history, setHistory] = useState<RefereeSnapshot[]>([]);
+  const [firstGiven, setFirstGiven] = useState(false);
   const [started, setStarted] = useState(false);
   const [session, setSession] = useState(SESSION);
   const [itemLeft, setItemLeft] = useState(0);
@@ -156,14 +160,18 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
     if (fx.flash) { setFlash({ big: "🛡️", text: fx.flash }); setTimeout(() => setFlash(null), 1500); }
   }, [game, pack, startItemTimer]);
 
-  const commit = (next: GState) => { setHistory((h) => [...h.slice(-40), s]); setS(next); };
+  const commit = (next: GState, nextFirstGiven = firstGiven) => {
+    setHistory((h) => [...h.slice(-40), refereeSnapshot(s, firstGiven)]);
+    setS(next);
+    setFirstGiven(nextFirstGiven);
+  };
 
   const doAct = (a: Action) => {
     if (!started || final) return;
     const { s: n, fx } = act(game, pack, step, s, a);
     if (n === s) return;
     if (a.t !== "wrong") sfx.ding();
-    commit(n);
+    commit(n, firstGiven || a.t === "first" || a.t === "ed" && step?.kind === "ed" && a.sound === step.sound);
     handleFx(fx);
   };
 
@@ -181,19 +189,19 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
     setRevealed(false); setEchoHidden(false); setEdFeedback(null);
     if (isStory) {
       const turn = s.story.speaker === null ? s.story.turn : other(s.story.turn);
-      commit({ ...s, teams: [{ ...s.teams[0], frozen: false }, { ...s.teams[1], frozen: false }], story: { ...s.story, turn, speaker: pickSpeaker(turn) } });
+      commit({ ...s, teams: [{ ...s.teams[0], frozen: false }, { ...s.teams[1], frozen: false }], story: { ...s.story, turn, speaker: pickSpeaker(turn) } }, false);
       startItemTimer(pack.storyHeist?.secondsPerTurn ?? 10);
       return;
     }
     if (isPerson) {
       if (s.person.round !== 1) return;
-      commit(personNextTurn(s, pickSpeaker));
+      commit(personNextTurn(s, pickSpeaker), false);
       startItemTimer(pack.buildPerson?.secondsPerTurn ?? 6);
       return;
     }
     if (s.idx >= steps.length) return;
     const { s: n, fx } = nextStep(game, pack, steps, s);
-    commit(n);
+    commit(n, false);
     handleFx(fx);
     const ns = steps[n.idx];
     if (ns) startItemTimer(ns.seconds);
@@ -204,13 +212,13 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
     let story = st;
     if (dir === "prompt") story = { prompt: promptIdx ?? st.prompt, round: 1, turn: 0, speaker: null };
     else story = st.round < 3 ? { ...st, round: (st.round + 1) as 2 | 3, speaker: null } : { prompt: (st.prompt + 1) % (pack.storyHeist?.prompts.length ?? 1), round: 1, turn: 0, speaker: null };
-    commit({ ...s, story });
+    commit({ ...s, story }, false);
     setItemLeft(0);
   };
 
   const personRound = () => {
     const n = personNextRound(pack, s);
-    commit(n);
+    commit(n, false);
     if (n.person.round === 2) startItemTimer(pack.buildPerson?.retellSeconds ?? 30);
     else setItemLeft(0);
   };
@@ -218,7 +226,7 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
   const undo = () => {
     setHistory((h) => {
       const prev = h[h.length - 1];
-      if (prev) setS(prev);
+      if (prev) { setS(prev.state); setFirstGiven(prev.firstGiven); }
       return h.slice(0, -1);
     });
   };
@@ -281,12 +289,19 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
     if (c) { setFlash({ big: c.emoji, text: `${s.teams[team].name}: ${c.name} — ${c.effect}` }); setTimeout(() => setFlash(null), 1800); }
   };
 
-  const ref = (label: string, key: string, onClick: () => void, cls: string, disabled = false) => (
-    <button onClick={onClick} disabled={disabled || !started || !!final} className={cn("rounded-2xl px-3 py-3 font-display text-lg font-bold shadow transition-transform active:scale-95 disabled:opacity-35", cls)}>
-      {label} <span className="text-xs opacity-75">({key})</span>
-    </button>
-  );
-  const ok = (t: TeamIdx) => canAnswer(game, s, t, step);
+  const ok = (t: TeamIdx) => started && !final && !finishedItems && panelCanAnswer(game, s, step, t);
+  const canReveal = !isTurns && !!step && !["echo", "person", "retell"].includes(step.kind)
+    && !(s.phase === "done" && (step.kind === "flip" || step.kind === "spell"));
+  const nextHighlighted = revealed || firstGiven || !canReveal;
+  const nextAvailable = started && !final && !finishedItems;
+  const panelTap = (team: TeamIdx, correct: boolean) => {
+    if (!ok(team)) return;
+    doAct(panelAction(step, team, firstGiven, correct));
+  };
+  const footerNext = () => {
+    if (isPerson && s.person.round === 2) personRound();
+    else doNext();
+  };
   const topBtn = "rounded-full border-2 border-border bg-card px-3 py-1.5 text-sm font-bold hover:border-primary";
 
   return (
@@ -311,7 +326,7 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
 
       {isBoss && <BossBar pack={pack} s={s} />}
 
-      <div className="grid min-h-0 flex-1 grid-cols-[230px_1fr_230px] gap-3">
+      <div className="grid min-h-0 flex-1 grid-cols-[minmax(190px,230px)_minmax(0,1fr)_minmax(190px,230px)] gap-3">
         {([0, 1] as TeamIdx[]).map((t) => (
           <TeamPanel
             key={t}
@@ -322,24 +337,27 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
             className={t === 0 ? "order-1" : "order-3"}
             onRename={(name) => { const n: GState = { ...s, teams: [...s.teams] as GState["teams"] }; n.teams[t] = { ...n.teams[t], name }; setS(n); saveNames([n.teams[0].name, n.teams[1].name]); }}
             onPlay={(i) => onPlayCard(t, i)}
+            enabled={ok(t)}
+            hint={correctHint(game, pack, step, s, t, firstGiven)}
+            onCorrect={() => panelTap(t, true)}
+            onWrong={() => panelTap(t, false)}
           />
         ))}
 
         {/* Center */}
-        <section className="order-2 flex min-h-0 flex-col items-center justify-center gap-3 rounded-3xl bg-card p-4 text-center shadow-xl">
+        <section className="relative order-2 flex min-h-0 flex-col items-center justify-center gap-3 rounded-3xl bg-card px-4 pt-4 pb-14 text-center shadow-xl">
           {isBoss && <BossMonster taunt={taunt} rage={s.rage > 0} />}
           {!started ? (
             <div className="flex flex-col items-center gap-4">
               <p className="font-display text-5xl font-bold text-primary">{gd.title}</p>
               <p className="text-lg text-muted-foreground">{gd.grammar}</p>
-              <button onClick={start} className="rounded-full bg-accent px-14 py-5 font-display text-4xl font-bold text-accent-foreground shadow-xl hover:scale-105">▶ Start</button>
-              <p className="text-sm text-muted-foreground">Space = start · 10-minute session</p>
+
             </div>
           ) : isStory ? (
             <StoryCenter pack={pack} s={s} itemLeft={itemLeft} itemTotal={itemTotal} onPrompt={(i) => storyRound("prompt", i)} onRound={() => storyRound("round")} />
           ) : isPerson ? (
             <PersonCenter pack={pack} s={s} itemLeft={itemLeft} itemTotal={itemTotal}
-              onCard={(i) => { commit(personSetCard(pack, s, i)); setItemLeft(0); }}
+              onCard={(i) => { commit(personSetCard(pack, s, i), false); setItemLeft(0); }}
               onRound={personRound}
               onTick={(i) => setS(personToggle(s, i))}
               teamNames={[s.teams[0].name, s.teams[1].name]} />
@@ -358,29 +376,32 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
               onTick={(i) => setS(personToggle(s, i))}
             />
           ) : null}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="absolute bottom-3 right-3 font-bold">⋯ More</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="top" className="w-52">
+              <DropdownMenuItem disabled={!history.length} onSelect={undo}>↺ Undo (U)</DropdownMenuItem>
+              <DropdownMenuItem disabled={!nextAvailable || isPerson && s.person.round === 2} onSelect={doNext}>⏭ Skip (S)</DropdownMenuItem>
+              <DropdownMenuItem disabled={!started} onSelect={() => setCardDrawer(0)}>🎁 Give card</DropdownMenuItem>
+              <DropdownMenuItem disabled={!started} onSelect={() => setPunishQ((q) => [...q, s.teams[0].score <= s.teams[1].score ? 0 : 1])}>💥 Punish</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </section>
       </div>
 
       {/* Referee bar */}
-      <footer className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-3xl bg-card p-2 shadow-xl">
-        <div className="grid grid-cols-3 gap-2">
-          {ref("A first ✔", "Q", () => doAct({ t: "first", team: 0 }), "bg-team-a text-team-foreground", !ok(0))}
-          {ref("+A", "A", () => doAct({ t: "plus", team: 0 }), "bg-team-a/80 text-team-foreground", !ok(0))}
-          {ref("✘A", "Z", () => doAct({ t: "wrong", team: 0 }), "border-2 border-team-a bg-card text-team-a", !ok(0))}
-        </div>
-        <div className="flex flex-wrap justify-center gap-2">
-          {ref(isTurns ? "Next turn" : "Next", "Space", doNext, "bg-accent text-accent-foreground")}
-          {!isTurns && ref("Skip", "S", doNext, "bg-muted text-foreground")}
-          {!isTurns && ref(revealed ? "Hide" : "Reveal", "R", () => setRevealed((r) => !r), "bg-secondary text-secondary-foreground")}
-          <button onClick={() => setCardDrawer(0)} disabled={!started} className="rounded-2xl bg-secondary px-3 py-3 font-display text-lg font-bold disabled:opacity-35">🎁 Card</button>
-          <button onClick={() => setPunishQ((q) => [...q, s.teams[0].score <= s.teams[1].score ? 0 : 1])} disabled={!started} className="rounded-2xl bg-crazy px-3 py-3 font-display text-lg font-bold text-crazy-foreground disabled:opacity-35">💥 Punish</button>
-          <button onClick={undo} disabled={!history.length} className="rounded-2xl border-2 border-border px-3 py-3 font-display text-lg font-bold disabled:opacity-35">↺ Undo <span className="text-xs opacity-75">(U)</span></button>
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          {ref("✘B", "M", () => doAct({ t: "wrong", team: 1 }), "border-2 border-team-b bg-card text-team-b", !ok(1))}
-          {ref("+B", "L", () => doAct({ t: "plus", team: 1 }), "bg-team-b/80 text-team-foreground", !ok(1))}
-          {ref("B first ✔", "P", () => doAct({ t: "first", team: 1 }), "bg-team-b text-team-foreground", !ok(1))}
-        </div>
+      <footer className="flex shrink-0 items-center justify-center gap-4 rounded-3xl bg-card p-3 shadow-xl">
+        {!started ? (
+          <Button onClick={start} className="h-16 min-w-64 bg-accent font-display text-3xl font-bold text-accent-foreground hover:bg-accent/90">▶ Start (Space)</Button>
+        ) : (
+          <>
+            {canReveal && <Button variant="secondary" disabled={!!final} onClick={() => setRevealed((r) => !r)} className={cn("h-16 min-w-56 font-display text-2xl font-bold", !nextHighlighted && "ring-4 ring-accent ring-offset-2 ring-offset-card")}>👁 {revealed ? "Hide" : "Reveal"} (R)</Button>}
+            <Button disabled={!nextAvailable} onClick={footerNext} className={cn("h-16 min-w-64 bg-accent font-display text-2xl font-bold text-accent-foreground hover:bg-accent/90", nextHighlighted && "ring-4 ring-accent ring-offset-2 ring-offset-card")}>
+              {isPerson && s.person.round === 2 ? "Next card" : isTurns ? "Next turn" : "Next"} ➜ (Space)
+            </Button>
+          </>
+        )}
       </footer>
 
       {/* Overlays */}
@@ -492,19 +513,20 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
   );
 }
 
-function TeamPanel({ t, s, game, pack, className, onRename, onPlay }: {
+function TeamPanel({ t, s, game, pack, className, onRename, onPlay, enabled, hint, onCorrect, onWrong }: {
   t: TeamIdx; s: GState; game: GameDay["game"]; pack: GamePack; className: string;
   onRename: (n: string) => void; onPlay: (i: number) => void;
+  enabled: boolean; hint: string; onCorrect: () => void; onWrong: () => void;
 }) {
   const team = s.teams[t];
   const color = t === 0 ? "bg-team-a" : "bg-team-b";
   const streak = s.streakTeam === t ? s.streakCount : 0;
   return (
-    <aside className={cn("flex min-h-0 flex-col gap-3 rounded-3xl p-4 text-team-foreground shadow-xl", color, className, team.frozen && "opacity-60")}>
+    <aside className={cn("flex min-h-0 flex-col gap-2 overflow-y-auto rounded-3xl p-3 text-team-foreground shadow-xl", game === "boss_battle" && "gap-1", color, className, team.frozen && "opacity-60")}>
       <input value={team.name} onChange={(e) => onRename(e.target.value)} className="w-full rounded-xl bg-transparent text-center font-display text-2xl font-bold outline-none focus:bg-card/20" aria-label="Team name" />
-      <p className="text-center font-display text-8xl font-bold leading-none tabular-nums">{team.score}</p>
+      <p className={cn("text-center font-display text-6xl font-bold leading-none tabular-nums", game === "boss_battle" && "text-5xl")}>{team.score}</p>
       {game === "boss_battle" ? (
-        <p className="text-center text-4xl">{Array.from({ length: pack.bossBattle.lives }, (_, i) => (i < team.lives ? "❤️" : "🖤")).join("")}</p>
+        <p className="text-center text-2xl">{Array.from({ length: pack.bossBattle.lives }, (_, i) => (i < team.lives ? "❤️" : "🖤")).join("")}</p>
       ) : game === "bomb_squad" ? (
         <div>
           <p className="text-sm font-bold">💣 Fuse {team.fuse}%</p>
@@ -519,14 +541,25 @@ function TeamPanel({ t, s, game, pack, className, onRename, onPlay }: {
         {team.double && <span className="rounded-full bg-card/30 px-2 py-0.5">✖️2 Double</span>}
         {team.shield && <span className="rounded-full bg-card/30 px-2 py-0.5">🛡️ Shield</span>}
       </div>
-      <div className="mt-auto space-y-2">
-        <p className="text-center text-xs font-bold uppercase tracking-wider opacity-80">Power cards (tap to play)</p>
+      <div className="shrink-0 space-y-1">
+        <Button variant="ghost" disabled={!enabled} onClick={onCorrect} aria-label={`Correct team ${t === 0 ? "A" : "B"}`} className={cn("h-[150px] w-full flex-col gap-1 bg-card font-display font-bold hover:bg-card/90", t === 0 ? "text-team-a" : "text-team-b")}>
+          <span className="text-7xl leading-none">✔</span>
+          <span className="text-sm">CORRECT · {t === 0 ? "Q" : "P"}</span>
+        </Button>
+        <p className="h-5 text-center text-xs font-bold">{enabled ? hint : "—"}</p>
+        <Button variant="ghost" disabled={!enabled} onClick={onWrong} aria-label={`Wrong team ${t === 0 ? "A" : "B"}`} className="h-20 w-full flex-col gap-0 border-2 border-team-foreground bg-transparent font-display font-bold text-team-foreground hover:bg-card/15 hover:text-team-foreground">
+          <span className="text-3xl leading-none">✘</span>
+          <span className="text-sm">WRONG · {t === 0 ? "Z" : "M"}</span>
+        </Button>
+      </div>
+      <div className="mt-auto grid shrink-0 grid-cols-2 gap-1">
+        <p className="col-span-2 text-center text-xs font-bold uppercase opacity-80">Power cards</p>
         {[0, 1].map((i) => {
           const c = pack.powerCards.find((p) => p.name === team.cards[i]);
           return c ? (
-            <button key={i} onClick={() => onPlay(i)} className="w-full rounded-xl bg-card px-2 py-2 font-display text-lg font-bold text-foreground shadow hover:scale-105">{c.emoji} {c.name}</button>
+            <Button key={i} variant="secondary" onClick={() => onPlay(i)} className="h-9 w-full gap-1 bg-card px-1 font-display text-sm font-bold text-foreground">{c.emoji} {c.name}</Button>
           ) : (
-            <div key={i} className="rounded-xl border-2 border-dashed border-card/40 py-2 text-center text-sm opacity-60">empty</div>
+            <div key={i} className="rounded-xl border-2 border-dashed border-card/40 py-1 text-center text-sm opacity-60">empty</div>
           );
         })}
       </div>
@@ -592,17 +625,6 @@ function ItemCenter({ step, s, game, itemLeft, itemTotal, revealed, echoHidden, 
         <>
           <p className="rounded-full bg-accent px-5 py-1 font-display text-xl font-bold text-accent-foreground">🗣️ SAY IT RIGHT — verb + its -ED sound</p>
           <p className={big}>{step.verb}</p>
-          {([0, 1] as TeamIdx[]).map((t) => (
-            <div key={t} className="flex items-center gap-2">
-              <span className={cn("w-32 truncate font-bold", t === 0 ? "text-team-a" : "text-team-b")}>{teamNames[t]}</span>
-              {(["t", "d", "id"] as const).map((snd) => (
-                <button key={snd} disabled={s.phase === "done"} onClick={() => onEd(t, snd)}
-                  className={cn("rounded-2xl px-6 py-3 font-display text-3xl font-bold text-team-foreground disabled:opacity-40", t === 0 ? "bg-team-a" : "bg-team-b")}>
-                  {SOUND_LABEL[snd]}
-                </button>
-              ))}
-            </div>
-          ))}
           {edFeedback && <p className={cn("font-display text-3xl font-bold", edFeedback.ok ? "text-primary" : "text-destructive")}>{edFeedback.ok ? "✔ Correct! +2" : `✘ It's ${SOUND_LABEL[step.sound]}`}</p>}
           {revealed && !edFeedback && <div className={answer}>{SOUND_LABEL[step.sound]}</div>}
         </>
@@ -821,7 +843,7 @@ function BossMonster({ taunt, rage }: { taunt: string | null; rage: boolean }) {
         <text x="65" y="100" textAnchor="middle" fontSize="16" fontWeight="800" fontFamily="Fredoka, sans-serif" fill="var(--accent)">-ED</text>
       </svg>
       {taunt && (
-        <div className="absolute left-full top-0 ml-2 w-64 rounded-2xl border-2 border-destructive bg-card p-3 text-left font-bold animate-in zoom-in-75">💬 {taunt}</div>
+        <div className="absolute left-1/2 top-full z-10 mt-1 w-64 max-w-[60vw] -translate-x-1/2 rounded-2xl border-2 border-destructive bg-card p-2 text-center text-sm font-bold animate-in zoom-in-75">💬 {taunt}</div>
       )}
     </div>
   );
