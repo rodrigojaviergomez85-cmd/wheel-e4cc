@@ -11,6 +11,7 @@ import {
 } from "@/lib/games/engine";
 import { sfx } from "@/lib/games/sounds";
 import { cn } from "@/lib/utils";
+import { CountedScore, bossColour, type Reaction, type BossReaction } from "@/components/games/ArenaEffects";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { correctHint, panelAction, panelCanAnswer, refereeSnapshot, type RefereeSnapshot } from "@/lib/games/referee";
@@ -93,6 +94,11 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
   const [names, setNames] = useState<[string, string]>(["", ""]);
   const [setupOpen, setSetupOpen] = useState(isTurns);
   const [muted, setMuted] = useState(false);
+  const [fxEnabled, setFxEnabled] = useState(true);
+  const [reactions, setReactions] = useState<[Reaction | null, Reaction | null]>([null, null]);
+  const [bossReaction, setBossReaction] = useState<BossReaction | null>(null);
+  const [burst, setBurst] = useState(0);
+  const reactionId = useRef(0);
   const lastSpeaker = useRef<string | null>(null);
 
   const step = steps[s.idx];
@@ -101,6 +107,7 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
   // load saved names (team + story students)
   useEffect(() => {
     setMuted(localStorage.getItem("e4cc-muted") === "1");
+    setFxEnabled(localStorage.getItem("e4cc-fx") !== "0");
     const b = loadBoard(pack);
     if (b.names) setS((p) => ({ ...p, teams: [{ ...p.teams[0], name: b.names![0] }, { ...p.teams[1], name: b.names![1] }] }));
     try {
@@ -140,6 +147,7 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
   };
 
   const handleFx = useCallback((fx: Effects) => {
+    if (fxEnabled && (fx.explode !== undefined || fx.punish !== undefined)) setBurst(++reactionId.current);
     if (fx.explode !== undefined && game !== "story_heist" && game !== "build_person") {
       sfx.boom();
       setExplosion(fx.explode);
@@ -158,7 +166,7 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
     if (fx.bossDead) { sfx.horn(); setFinal("boss"); }
     if (fx.event) { setEvent(fx.event); setTimeout(() => setEvent(null), 3000); }
     if (fx.flash) { setFlash({ big: "🛡️", text: fx.flash }); setTimeout(() => setFlash(null), 1500); }
-  }, [game, pack, startItemTimer]);
+  }, [game, pack, startItemTimer, fxEnabled]);
 
   const commit = (next: GState, nextFirstGiven = firstGiven) => {
     setHistory((h) => [...h.slice(-40), refereeSnapshot(s, firstGiven)]);
@@ -171,6 +179,22 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
     const { s: n, fx } = act(game, pack, step, s, a);
     if (n === s) return;
     if (a.t !== "wrong") sfx.ding();
+    if (fxEnabled) {
+      const team = a.team;
+      const oldTeam = s.teams[team];
+      const newTeam = n.teams[team];
+      const points = newTeam.score - oldTeam.score;
+      const wrong = a.t === "wrong" || a.t === "ed" && step?.kind === "ed" && a.sound !== step.sound;
+      const fuseLoss = step?.kind === "echo" ? 10 : 15;
+      const text = points !== 0 ? `${points > 0 ? "+" : "−"}${Math.abs(points)}`
+        : newTeam.fuse !== oldTeam.fuse ? `💥 fuse −${fuseLoss}%`
+        : newTeam.lives < oldTeam.lives ? `−${oldTeam.lives - newTeam.lives} ❤️`
+        : newTeam.strikes !== oldTeam.strikes || fx.punish !== undefined ? "⚠️ Strike" : wrong ? "✘" : "✔";
+      const id = ++reactionId.current;
+      const reaction: Reaction = { id, correct: !wrong, text, lostLives: oldTeam.lives - newTeam.lives, onFire: fx.offerCard === team };
+      setReactions((r) => { const next: [Reaction | null, Reaction | null] = [...r]; next[team] = reaction; return next; });
+      if (isBoss) setBossReaction({ id, damage: Math.max(0, s.bossHp - n.bossHp), attack: wrong });
+    }
     commit(n, firstGiven || a.t === "first" || a.t === "ed" && step?.kind === "ed" && a.sound === step.sound);
     handleFx(fx);
   };
@@ -242,7 +266,10 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
   useEffect(() => { setBoard(loadBoard(pack)); }, [pack]);
   useEffect(() => {
     if (!final) return;
-    confetti({ particleCount: final === "time" ? 60 : 260, spread: 120, origin: { y: 0.5 } });
+    const css = getComputedStyle(document.documentElement);
+    const winner = s.teams[0].score === s.teams[1].score ? null : s.teams[0].score > s.teams[1].score ? 0 : 1;
+    const colours = (winner === null ? [0, 1] : [winner]).map((t) => css.getPropertyValue(t === 0 ? "--team-a" : "--team-b").trim());
+    confetti({ particleCount: final === "time" ? 60 : 260, spread: 120, origin: { y: 0.5 }, ...(fxEnabled ? { colors: colours } : {}), disableForReducedMotion: true });
     const b = loadBoard(pack);
     b.days[String(gd.day)] = [s.teams[0].score, s.teams[1].score];
     b.names = [s.teams[0].name, s.teams[1].name];
@@ -302,10 +329,14 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
     if (isPerson && s.person.round === 2) personRound();
     else doNext();
   };
+  const lowFuse = Math.min(s.teams[0].fuse, s.teams[1].fuse);
+  const stepKey = `${s.idx}-${s.flipSub}-${s.phase}-${s.story.prompt}-${s.story.round}-${s.story.speaker}-${s.person.card}-${s.person.round}-${s.person.speaker}`;
   const topBtn = "rounded-full border-2 border-border bg-card px-3 py-1.5 text-sm font-bold hover:border-primary";
 
   return (
-    <main className={cn("flex h-screen min-h-[640px] flex-col gap-2 overflow-hidden p-3", shake && "animate-shake")}>
+    <main className={cn("relative isolate flex h-screen min-h-[640px] flex-col gap-2 overflow-hidden p-3", fxEnabled ? "arena-fx-on" : "arena-fx-off", fxEnabled && isBoss && "arena-boss", fxEnabled && game === "bomb_squad" && "arena-bomb", shake && "animate-shake")}>
+      {fxEnabled && game === "bomb_squad" && lowFuse <= 30 && <div className="arena-vignette" />}
+      {fxEnabled && burst > 0 && <div key={burst} className="fx-explosion" />}
       {/* Top bar */}
       <header className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
@@ -317,6 +348,7 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
         </div>
         <div className="flex items-center gap-2">
           {isTurns && <button onClick={() => setSetupOpen(true)} className={topBtn}>👥 Names</button>}
+          <Button variant="outline" aria-pressed={fxEnabled} onClick={() => setFxEnabled((on) => { localStorage.setItem("e4cc-fx", on ? "0" : "1"); return !on; })} className={cn(topBtn, "h-auto shrink-0", !fxEnabled && "opacity-60")}>✨ FX</Button>
           <button onClick={toggleMute} className={topBtn}>{muted ? "🔇" : "🔊"}</button>
           <button onClick={fullscreen} className={topBtn}>⛶</button>
           <button onClick={() => setFinal(isBoss ? "time" : "done")} className={topBtn}>🏁 End</button>
@@ -324,7 +356,7 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
         </div>
       </header>
 
-      {isBoss && <BossBar pack={pack} s={s} />}
+      {isBoss && <BossBar pack={pack} s={s} fxEnabled={fxEnabled} reaction={bossReaction} />}
 
       <div className="grid min-h-0 flex-1 grid-cols-[minmax(190px,230px)_minmax(0,1fr)_minmax(190px,230px)] gap-3">
         {([0, 1] as TeamIdx[]).map((t) => (
@@ -337,6 +369,8 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
             className={t === 0 ? "order-1" : "order-3"}
             onRename={(name) => { const n: GState = { ...s, teams: [...s.teams] as GState["teams"] }; n.teams[t] = { ...n.teams[t], name }; setS(n); saveNames([n.teams[0].name, n.teams[1].name]); }}
             onPlay={(i) => onPlayCard(t, i)}
+            fxEnabled={fxEnabled}
+            reaction={reactions[t]}
             enabled={ok(t)}
             hint={correctHint(game, pack, step, s, t, firstGiven)}
             onCorrect={() => panelTap(t, true)}
@@ -345,8 +379,8 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
         ))}
 
         {/* Center */}
-        <section className="relative order-2 flex min-h-0 flex-col items-center justify-center gap-3 rounded-3xl bg-card px-4 pt-4 pb-14 text-center shadow-xl">
-          {isBoss && <BossMonster taunt={taunt} rage={s.rage > 0} />}
+        <section key={stepKey} className={cn(fxEnabled && "fx-enter", "arena-center relative order-2 flex min-h-0 flex-col items-center justify-center gap-3 rounded-3xl bg-card px-4 pt-4 pb-14 text-center shadow-xl")}>
+          {isBoss && <BossMonster taunt={taunt} rage={s.rage > 0} name={pack.bossBattle.name} fxEnabled={fxEnabled} reaction={bossReaction} dead={s.bossHp <= 0} />}
           {!started ? (
             <div className="flex flex-col items-center gap-4">
               <p className="font-display text-5xl font-bold text-primary">{gd.title}</p>
@@ -495,7 +529,7 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
 
       {final && punishQ.length === 0 && (
         <FinalPanel
-          pack={pack} s={s} final={final} board={board} day={gd.day}
+          fxEnabled={fxEnabled} pack={pack} s={s} final={final} board={board} day={gd.day}
           onClose={() => setFinal(null)}
           onPunishLoser={() => { if (s.teams[0].score !== s.teams[1].score) setPunishQ([s.teams[0].score < s.teams[1].score ? 0 : 1]); }}
         />
@@ -513,29 +547,34 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
   );
 }
 
-function TeamPanel({ t, s, game, pack, className, onRename, onPlay, enabled, hint, onCorrect, onWrong }: {
+function TeamPanel({ t, s, game, pack, className, onRename, onPlay, enabled, hint, onCorrect, onWrong, fxEnabled, reaction }: {
   t: TeamIdx; s: GState; game: GameDay["game"]; pack: GamePack; className: string;
   onRename: (n: string) => void; onPlay: (i: number) => void;
+  fxEnabled: boolean; reaction: Reaction | null;
   enabled: boolean; hint: string; onCorrect: () => void; onWrong: () => void;
 }) {
   const team = s.teams[t];
   const color = t === 0 ? "bg-team-a" : "bg-team-b";
   const streak = s.streakTeam === t ? s.streakCount : 0;
   return (
-    <aside className={cn("flex min-h-0 flex-col gap-2 overflow-y-auto rounded-3xl p-3 text-team-foreground shadow-xl", game === "boss_battle" && "gap-1", color, className, team.frozen && "opacity-60")}>
+    <aside className={cn("relative flex min-h-0 flex-col gap-1 overflow-hidden rounded-3xl p-3 text-team-foreground shadow-xl", game === "boss_battle" && "gap-0.5", color, className, team.frozen && "opacity-60")}>
+      {fxEnabled && reaction && <div key={reaction.id} className={cn("fx-panel-flash", reaction.correct ? "correct" : "wrong")} />}
       <input value={team.name} onChange={(e) => onRename(e.target.value)} className="w-full rounded-xl bg-transparent text-center font-display text-2xl font-bold outline-none focus:bg-card/20" aria-label="Team name" />
-      <p className={cn("text-center font-display text-6xl font-bold leading-none tabular-nums", game === "boss_battle" && "text-5xl")}>{team.score}</p>
+      <div className="relative shrink-0">
+      {fxEnabled && reaction && <span key={reaction.id} className="fx-float text-lg">{reaction.text}</span>}
+      <p key={fxEnabled && reaction?.correct ? reaction.id : "score"} className={cn(fxEnabled && reaction?.correct && "fx-score", "text-center font-display text-6xl font-bold leading-none tabular-nums", game === "boss_battle" && "text-5xl")}>{team.score}</p>
+      </div>
       {game === "boss_battle" ? (
-        <p className="text-center text-2xl">{Array.from({ length: pack.bossBattle.lives }, (_, i) => (i < team.lives ? "❤️" : "🖤")).join("")}</p>
+        <p className="text-center text-2xl">{Array.from({ length: pack.bossBattle.lives }, (_, i) => <span key={`${i}-${fxEnabled ? reaction?.id : "plain"}`} className={cn(fxEnabled && reaction && reaction.lostLives > 0 && i >= team.lives && i < team.lives + reaction.lostLives && "fx-heart-lost")}>{i < team.lives ? "❤️" : "🖤"}</span>)}</p>
       ) : game === "bomb_squad" ? (
         <div>
           <p className="text-sm font-bold">💣 Fuse {team.fuse}%</p>
-          <div className="mt-1 h-4 overflow-hidden rounded-full bg-card/30"><div className="h-full rounded-full bg-accent transition-all" style={{ width: `${team.fuse}%` }} /></div>
+          <div className="relative mt-1 h-4 rounded-full bg-card/30"><div className={cn("h-full w-full rounded-full bg-accent", fxEnabled && "fx-fuse-fill", fxEnabled && team.fuse <= 30 && "fx-fuse-danger")} style={{ transform: `scaleX(${team.fuse / 100})` }} />{fxEnabled && <span className="fx-spark text-sm" style={{ left: `${team.fuse}%` }}>✨</span>}</div>
         </div>
       ) : null}
       {(game === "story_heist" || game === "build_person") && <p className="text-center text-3xl font-bold">{team.strikes > 0 ? `⚠️ x${team.strikes}` : "—"}</p>}
       {game === "boss_battle" && <p className="text-center text-sm font-bold">⚔️ Damage dealt: {team.damage}</p>}
-      <p className="text-center font-bold">🔥 Streak: {streak}</p>
+      <p className={cn("text-center font-bold", fxEnabled && reaction?.onFire && streak === 0 && "fx-fire")}>{fxEnabled && reaction?.onFire && streak === 0 ? "🔥 ON FIRE" : `🔥 Streak: ${streak}`}</p>
       <div className="flex flex-wrap justify-center gap-1 text-xs font-bold">
         {team.frozen && <span className="rounded-full bg-card/30 px-2 py-0.5">🧊 FROZEN</span>}
         {team.double && <span className="rounded-full bg-card/30 px-2 py-0.5">✖️2 Double</span>}
@@ -573,7 +612,7 @@ function ItemTimer({ left, total, label }: { left: number; total: number; label?
   const frac = total > 0 ? left / total : 0;
   return (
     <div className="flex items-center gap-2">
-      <svg width="88" height="88" viewBox="0 0 88 88">
+      <svg key={left} className={cn(left > 0 && left <= 3 && "fx-timer")} width="88" height="88" viewBox="0 0 88 88">
         <circle cx="44" cy="44" r={r} fill="none" stroke="var(--muted)" strokeWidth="8" />
         <circle cx="44" cy="44" r={r} fill="none" stroke={left <= 3 ? "var(--destructive)" : "var(--primary)"} strokeWidth="8" strokeLinecap="round"
           strokeDasharray={c} strokeDashoffset={c * (1 - frac)} transform="rotate(-90 44 44)" style={{ transition: "stroke-dashoffset 1s linear" }} />
@@ -597,7 +636,7 @@ function ItemCenter({ step, s, game, itemLeft, itemTotal, revealed, echoHidden, 
         <span className="font-bold text-muted-foreground">Item {s.idx + 1}/{total}</span>
         <ItemTimer left={itemLeft} total={itemTotal} label={s.phase === "sentence" ? "Sentence!" : undefined} />
       </div>
-      {game === "bomb_squad" && <p className="animate-bomb text-7xl">💣</p>}
+      {game === "bomb_squad" && <p className={cn("fx-bomb", Math.min(s.teams[0].fuse, s.teams[1].fuse) <= 30 ? "danger" : Math.min(s.teams[0].fuse, s.teams[1].fuse) <= 60 && "warning")}>💣<span>🔥</span></p>}
 
       {step.kind === "translate" && (
         <>
@@ -818,12 +857,12 @@ function StoryCenter({ pack, s, itemLeft, itemTotal, onPrompt, onRound }: { pack
   );
 }
 
-function BossBar({ pack, s }: { pack: GamePack; s: GState }) {
+function BossBar({ pack, s, fxEnabled, reaction }: { pack: GamePack; s: GState; fxEnabled: boolean; reaction: BossReaction | null }) {
   const pct = (s.bossHp / pack.bossBattle.hp) * 100;
   return (
     <div className="flex items-center gap-3 rounded-2xl bg-card px-4 py-2 shadow">
       <span className="font-display text-xl font-bold text-destructive">👹 {pack.bossBattle.name}</span>
-      <div className="h-6 flex-1 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-destructive transition-all" style={{ width: `${pct}%` }} /></div>
+      <div className={cn("relative flex-1 rounded-full bg-muted", fxEnabled ? "h-7" : "h-6")}><div className={cn("h-full w-full rounded-full bg-destructive", fxEnabled && "fx-hp-fill")} style={{ transform: `scaleX(${pct / 100})`, ...(fxEnabled ? { background: `var(--boss-${pct > 60 ? "healthy" : pct >= 30 ? "warning" : "danger"})` } : {}) }} />{fxEnabled && reaction && reaction.damage > 0 && <span key={reaction.id} className="fx-float">−{reaction.damage}</span>}</div>
       <span className="font-display text-xl font-bold tabular-nums">{s.bossHp} HP</span>
       {s.crit && <span className="font-bold">💎 Critical ready</span>}
       {s.rage > 0 && <span className="font-bold text-destructive">🔥 Rage ({s.rage})</span>}
@@ -831,16 +870,16 @@ function BossBar({ pack, s }: { pack: GamePack; s: GState }) {
   );
 }
 
-function BossMonster({ taunt, rage }: { taunt: string | null; rage: boolean }) {
+function BossMonster({ taunt, rage, name, fxEnabled, reaction, dead }: { taunt: string | null; rage: boolean; name: string; fxEnabled: boolean; reaction: BossReaction | null; dead: boolean }) {
   return (
-    <div className="relative">
-      <svg width="130" height="110" viewBox="0 0 130 110" className={cn(rage && "animate-bomb")}>
-        <path d="M20 40 L10 8 L38 28 Z M110 40 L120 8 L92 28 Z" fill="var(--seg-7)" />
-        <ellipse cx="65" cy="62" rx="52" ry="44" fill="var(--seg-7)" />
+    <div key={fxEnabled ? reaction?.id : "plain"} className={cn("relative shrink-0", fxEnabled && (dead ? "fx-monster-dead" : reaction?.damage ? "fx-monster-hit" : reaction?.attack && "fx-monster-attack"))}>
+      <svg width="130" height="110" viewBox="0 0 130 110" className={cn(fxEnabled && rage && "fx-fire")}>
+        <path d="M20 40 L10 8 L38 28 Z M110 40 L120 8 L92 28 Z" fill={rage && fxEnabled ? "var(--destructive)" : bossColour(name)} />
+        <ellipse cx="65" cy="62" rx="52" ry="44" fill={rage && fxEnabled ? "var(--destructive)" : bossColour(name)} />
         <circle cx="45" cy="48" r="10" fill="var(--card)" /><circle cx="85" cy="48" r="10" fill="var(--card)" />
         <circle cx="45" cy="50" r="5" fill="var(--destructive)" /><circle cx="85" cy="50" r="5" fill="var(--destructive)" />
         <path d="M42 72 L52 80 L60 72 L70 80 L78 72 L88 80" stroke="var(--card)" strokeWidth="4" fill="none" />
-        <text x="65" y="100" textAnchor="middle" fontSize="16" fontWeight="800" fontFamily="Fredoka, sans-serif" fill="var(--accent)">-ED</text>
+
       </svg>
       {taunt && (
         <div className="absolute left-1/2 top-full z-10 mt-1 w-64 max-w-[60vw] -translate-x-1/2 rounded-2xl border-2 border-destructive bg-card p-2 text-center text-sm font-bold animate-in zoom-in-75">💬 {taunt}</div>
@@ -849,7 +888,8 @@ function BossMonster({ taunt, rage }: { taunt: string | null; rage: boolean }) {
   );
 }
 
-function FinalPanel({ pack, s, final, board, day, onClose, onPunishLoser }: {
+function FinalPanel({ pack, s, final, board, day, onClose, onPunishLoser, fxEnabled }: {
+  fxEnabled: boolean;
   pack: GamePack; s: GState; final: "time" | "done" | "boss"; board: Board; day: number; onClose: () => void; onPunishLoser: () => void;
 }) {
   const [a, b] = s.teams;
@@ -866,9 +906,9 @@ function FinalPanel({ pack, s, final, board, day, onClose, onPunishLoser }: {
         <p className="font-display text-5xl font-bold">{winner === null ? "🤝 It's a tie!" : `🏆 ${s.teams[winner].name} wins!`}</p>
         <div className="flex justify-center gap-6">
           {([0, 1] as TeamIdx[]).map((t) => (
-            <div key={t} className={cn("rounded-3xl px-10 py-4 text-team-foreground", t === 0 ? "bg-team-a" : "bg-team-b")}>
-              <p className="font-display text-2xl font-bold">{s.teams[t].name}</p>
-              <p className="font-display text-7xl font-bold">{s.teams[t].score}</p>
+            <div key={t} className={cn("rounded-3xl px-10 py-4 text-team-foreground", fxEnabled && winner === t && "fx-winner", t === 0 ? "bg-team-a" : "bg-team-b")}>
+              <p className="font-display text-2xl font-bold">{fxEnabled && winner === t && "🏆 "}{s.teams[t].name}</p>
+              <p className="font-display text-7xl font-bold"><CountedScore value={s.teams[t].score} enabled={fxEnabled} /></p>
             </div>
           ))}
         </div>
