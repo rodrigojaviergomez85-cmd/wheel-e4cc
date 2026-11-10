@@ -331,6 +331,9 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
   };
   const lowFuse = Math.min(s.teams[0].fuse, s.teams[1].fuse);
   const stepKey = `${s.idx}-${s.flipSub}-${s.phase}-${s.story.prompt}-${s.story.round}-${s.story.speaker}-${s.person.card}-${s.person.round}-${s.person.speaker}`;
+  useEffect(() => {
+    setReactions((r) => r.map((reaction) => reaction ? { ...reaction, onFire: false } : null) as [Reaction | null, Reaction | null]);
+  }, [s.idx, s.story.prompt, s.story.round, s.story.speaker, s.person.card, s.person.round, s.person.speaker]);
   const topBtn = "rounded-full border-2 border-border bg-card px-3 py-1.5 text-sm font-bold hover:border-primary";
 
   return (
@@ -557,7 +560,7 @@ function TeamPanel({ t, s, game, pack, className, onRename, onPlay, enabled, hin
   const color = t === 0 ? "bg-team-a" : "bg-team-b";
   const streak = s.streakTeam === t ? s.streakCount : 0;
   return (
-    <aside className={cn("relative flex min-h-0 flex-col gap-1 overflow-hidden rounded-3xl p-3 text-team-foreground shadow-xl", game === "boss_battle" && "gap-0.5", color, className, team.frozen && "opacity-60")}>
+    <aside className={cn("relative flex min-h-0 flex-col gap-1 overflow-hidden rounded-3xl p-3 text-team-foreground shadow-xl", t === 0 ? "arena-team-a" : "arena-team-b", fxEnabled && reaction && !reaction.correct && (reaction.id % 2 ? "fx-panel-wrong" : "fx-panel-wrong-alt"), game === "boss_battle" && "gap-0.5", color, className, team.frozen && "opacity-60")}>
       {fxEnabled && reaction && <div key={reaction.id} className={cn("fx-panel-flash", reaction.correct ? "correct" : "wrong")} />}
       <input value={team.name} onChange={(e) => onRename(e.target.value)} className="w-full rounded-xl bg-transparent text-center font-display text-2xl font-bold outline-none focus:bg-card/20" aria-label="Team name" />
       <div className="relative shrink-0">
@@ -873,6 +876,7 @@ function BossBar({ pack, s, fxEnabled, reaction }: { pack: GamePack; s: GState; 
 function BossMonster({ taunt, rage, name, fxEnabled, reaction, dead }: { taunt: string | null; rage: boolean; name: string; fxEnabled: boolean; reaction: BossReaction | null; dead: boolean }) {
   return (
     <div key={fxEnabled ? reaction?.id : "plain"} className={cn("relative shrink-0", fxEnabled && (dead ? "fx-monster-dead" : reaction?.damage ? "fx-monster-hit" : reaction?.attack && "fx-monster-attack"))}>
+      {fxEnabled && rage && <div className="fx-rage absolute inset-0" />}
       <svg width="130" height="110" viewBox="0 0 130 110" className={cn(fxEnabled && rage && "fx-fire")}>
         <path d="M20 40 L10 8 L38 28 Z M110 40 L120 8 L92 28 Z" fill={rage && fxEnabled ? "var(--destructive)" : bossColour(name)} />
         <ellipse cx="65" cy="62" rx="52" ry="44" fill={rage && fxEnabled ? "var(--destructive)" : bossColour(name)} />
