@@ -522,11 +522,11 @@ function TeamPanel({ t, s, game, pack, className, onRename, onPlay, enabled, hin
   const color = t === 0 ? "bg-team-a" : "bg-team-b";
   const streak = s.streakTeam === t ? s.streakCount : 0;
   return (
-    <aside className={cn("flex min-h-0 flex-col gap-2 overflow-y-auto rounded-3xl p-3 text-team-foreground shadow-xl", color, className, team.frozen && "opacity-60")}>
+    <aside className={cn("flex min-h-0 flex-col gap-2 overflow-y-auto rounded-3xl p-3 text-team-foreground shadow-xl", game === "boss_battle" && "gap-1", color, className, team.frozen && "opacity-60")}>
       <input value={team.name} onChange={(e) => onRename(e.target.value)} className="w-full rounded-xl bg-transparent text-center font-display text-2xl font-bold outline-none focus:bg-card/20" aria-label="Team name" />
       <p className="text-center font-display text-6xl font-bold leading-none tabular-nums">{team.score}</p>
       {game === "boss_battle" ? (
-        <p className="text-center text-4xl">{Array.from({ length: pack.bossBattle.lives }, (_, i) => (i < team.lives ? "❤️" : "🖤")).join("")}</p>
+        <p className="text-center text-2xl">{Array.from({ length: pack.bossBattle.lives }, (_, i) => (i < team.lives ? "❤️" : "🖤")).join("")}</p>
       ) : game === "bomb_squad" ? (
         <div>
           <p className="text-sm font-bold">💣 Fuse {team.fuse}%</p>
@@ -552,12 +552,12 @@ function TeamPanel({ t, s, game, pack, className, onRename, onPlay, enabled, hin
           <span className="text-sm">WRONG · {t === 0 ? "Z" : "M"}</span>
         </Button>
       </div>
-      <div className="mt-auto space-y-1">
-        <p className="text-center text-xs font-bold uppercase tracking-wider opacity-80">Power cards (tap to play)</p>
+      <div className="mt-auto grid shrink-0 grid-cols-2 gap-1">
+        <p className="col-span-2 text-center text-xs font-bold uppercase opacity-80">Power cards</p>
         {[0, 1].map((i) => {
           const c = pack.powerCards.find((p) => p.name === team.cards[i]);
           return c ? (
-            <button key={i} onClick={() => onPlay(i)} className="w-full rounded-xl bg-card px-2 py-2 font-display text-lg font-bold text-foreground shadow hover:scale-105">{c.emoji} {c.name}</button>
+            <Button key={i} variant="secondary" onClick={() => onPlay(i)} className="h-9 w-full gap-1 bg-card px-1 font-display text-sm font-bold text-foreground">{c.emoji} {c.name}</Button>
           ) : (
             <div key={i} className="rounded-xl border-2 border-dashed border-card/40 py-2 text-center text-sm opacity-60">empty</div>
           );
@@ -843,7 +843,7 @@ function BossMonster({ taunt, rage }: { taunt: string | null; rage: boolean }) {
         <text x="65" y="100" textAnchor="middle" fontSize="16" fontWeight="800" fontFamily="Fredoka, sans-serif" fill="var(--accent)">-ED</text>
       </svg>
       {taunt && (
-        <div className="absolute left-full top-0 ml-2 w-64 rounded-2xl border-2 border-destructive bg-card p-3 text-left font-bold animate-in zoom-in-75">💬 {taunt}</div>
+        <div className="absolute left-1/2 top-full z-10 mt-1 w-64 max-w-[60vw] -translate-x-1/2 rounded-2xl border-2 border-destructive bg-card p-2 text-center text-sm font-bold animate-in zoom-in-75">💬 {taunt}</div>
       )}
     </div>
   );
