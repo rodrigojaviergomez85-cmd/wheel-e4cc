@@ -560,7 +560,7 @@ function TeamPanel({ t, s, game, pack, className, onRename, onPlay, enabled, hin
   const color = t === 0 ? "bg-team-a" : "bg-team-b";
   const streak = s.streakTeam === t ? s.streakCount : 0;
   return (
-    <aside className={cn("relative flex min-h-0 flex-col gap-1 overflow-hidden rounded-3xl p-3 text-team-foreground shadow-xl", t === 0 ? "arena-team-a" : "arena-team-b", fxEnabled && reaction && !reaction.correct && (reaction.id % 2 ? "fx-panel-wrong" : "fx-panel-wrong-alt"), game === "boss_battle" && "gap-0.5", color, className, team.frozen && "opacity-60")}>
+    <aside className={cn("relative flex min-h-0 flex-col gap-1 overflow-hidden rounded-3xl p-3 text-team-foreground shadow-xl", t === 0 ? "arena-team-a" : "arena-team-b", fxEnabled && reaction && !reaction.correct && (reaction.id % 2 ? "fx-panel-wrong" : "fx-panel-wrong-alt"), game === "boss_battle" && "gap-0.5 p-2", color, className, team.frozen && "opacity-60")}>
       {fxEnabled && reaction && <div key={reaction.id} className={cn("fx-panel-flash", reaction.correct ? "correct" : "wrong")} />}
       <input value={team.name} onChange={(e) => onRename(e.target.value)} className="w-full rounded-xl bg-transparent text-center font-display text-2xl font-bold outline-none focus:bg-card/20" aria-label="Team name" />
       <div className="relative shrink-0">
