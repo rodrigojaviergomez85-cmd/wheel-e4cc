@@ -11,3 +11,4 @@
 
 - Games scoring/state logic lives as pure functions in src/lib/games/engine.ts (tested in src/test/games-engine.test.ts); the /games route only renders and wires overlays — keeps rules testable without the UI.
 - Referee presentation decisions live in src/lib/games/referee.ts; derive tap hints from the unchanged engine and snapshot first-answer state alongside game state for Undo.
+- Arena visual reactions are ephemeral presentation state derived from engine deltas; FX and reduced-motion gates never affect game state, history, or timers.
