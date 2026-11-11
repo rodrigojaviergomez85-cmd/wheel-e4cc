@@ -132,11 +132,34 @@ describe("games engine", () => {
 });
 
 import { B1_W1 as __B1 } from "@/data/games/b1-w1";
+import { EAGLES_W2 } from "@/data/games/eagles-w2";
+import { EAGLES_W4 } from "@/data/games/eagles-w4";
 import { buildSteps as __bs } from "@/lib/games/engine";
 describe("B1 word sprint", () => {
   it("uses Flip It after the 4th word when flips exist", () => {
     const st = __bs("word_sprint", __B1);
     expect(st[4]?.kind).toBe("flip");
     expect(st.some((x) => x.kind === "spell")).toBe(false);
+  });
+});
+
+describe("Participle Sprint", () => {
+  it("eagles W2 is participle mode and steps carry the participle", () => {
+    expect(EAGLES_W2.pastSprint?.mode).toBe("participle");
+    const st = __bs("past_sprint", EAGLES_W2);
+    const go = st.find((x) => x.kind === "pastform" && x.base === "go");
+    expect(go).toMatchObject({ kind: "pastform", past: "went", participle: "gone" });
+  });
+  it("eagles W4 boss pastform round carries participles; B3 stays simple past", () => {
+    const boss = __bs("boss_battle", EAGLES_W4).filter((x) => x.kind === "pastform");
+    expect(boss.length).toBeGreaterThan(0);
+    expect(boss.every((x) => x.kind === "pastform" && typeof x.participle === "string")).toBe(true);
+    expect(B3_W2.pastSprint?.mode).toBeUndefined();
+    const b3 = __bs("past_sprint", B3_W2).find((x) => x.kind === "pastform");
+    expect(b3).toMatchObject({ kind: "pastform", past: "cleaned" });
+  });
+  it("tigers, sharks and eagles have packs for all four weeks", () => {
+    (["tigers", "sharks", "eagles"] as const).forEach((l) =>
+      [1, 2, 3, 4].forEach((w) => expect(findGamePack(l, w)).toBeDefined()));
   });
 });
