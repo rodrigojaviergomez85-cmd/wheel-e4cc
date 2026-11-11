@@ -626,10 +626,12 @@ function ItemTimer({ left, total, label }: { left: number; total: number; label?
   );
 }
 
-function ItemCenter({ step, s, game, itemLeft, itemTotal, revealed, echoHidden, onHideEcho, edFeedback, total, onEd, teamNames, onTick }: {
+function ItemCenter({ step, s, game, itemLeft, itemTotal, revealed, echoHidden, onHideEcho, edFeedback, total, onEd, teamNames, onTick, participle }: {
   onTick: (i: number) => void;
   step: Step; s: GState; game: GameDay["game"]; itemLeft: number; itemTotal: number; revealed: boolean; echoHidden: boolean; onHideEcho: () => void;
   edFeedback: { team: TeamIdx; ok: boolean } | null; total: number; onEd: (t: TeamIdx, sound: "t" | "d" | "id") => void; teamNames: [string, string];
+  /** Participle Sprint: expect the past participle instead of the simple past. */
+  participle?: boolean;
 }) {
   const big = "font-display text-[clamp(40px,4.4vw,64px)] font-semibold leading-tight";
   const answer = "rounded-2xl bg-secondary px-6 py-3 text-2xl font-bold text-secondary-foreground";
@@ -673,7 +675,7 @@ function ItemCenter({ step, s, game, itemLeft, itemTotal, revealed, echoHidden, 
       )}
       {step.kind === "pastform" && (
         <>
-          <p className="text-sm font-bold uppercase tracking-widest text-accent">Say / type the past form</p>
+          <p className="text-sm font-bold uppercase tracking-widest text-accent">{participle ? "Say / type the PAST PARTICIPLE" : "Say / type the past form"}</p>
           <p className="font-display text-[clamp(64px,7vw,110px)] font-bold leading-none">{step.base}</p>
           <p className="text-2xl text-muted-foreground">{step.es}</p>
           {s.phase === "sentence" && s.firstTeam !== null && (
@@ -683,7 +685,7 @@ function ItemCenter({ step, s, game, itemLeft, itemTotal, revealed, echoHidden, 
           )}
           {revealed && (
             <div className={answer}>
-              <p className="font-display text-5xl">{step.past}</p>
+              <p className="font-display text-5xl">{(participle && step.participle) || step.past}</p>
               <span className={cn("mt-2 inline-block rounded-full px-4 py-1 text-lg font-bold", step.sound === "irregular" ? "bg-crazy text-crazy-foreground" : "bg-primary text-primary-foreground")}>
                 {step.sound === "irregular" ? "IRREGULAR" : SOUND_LABEL[step.sound]}
               </span>
