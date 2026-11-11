@@ -12,7 +12,7 @@ export type EchoItem = { en: string };
 export type SniperItem = { wrong: string; right: string; hint: string };
 export type EdSoundItem = { verb: string; sound: "t" | "d" | "id" };
 export type StoryPrompt = { prompt: string; retellAs: string };
-export type VerbItem = { base: string; es: string; past: string; sound: "t" | "d" | "id" | "irregular"; example: string };
+export type VerbItem = { base: string; es: string; past: string; participle?: string; sound: "t" | "d" | "id" | "irregular"; example: string };
 export type FlipItem = { affirmative: string; negative: string; question: string };
 
 /** Build-a-Person (B0): a character the team builds one sentence at a time. */
@@ -52,7 +52,7 @@ export type GamePack = {
   bombSquad: { translations: TranslationItem[]; echo: EchoItem[] };
   lightningSniper: { items: SniperItem[]; edSounds?: EdSoundItem[] };
   storyHeist?: { prompts: StoryPrompt[]; secondsPerTurn: number; strikesToExplode: number };
-  pastSprint?: { verbs: VerbItem[]; flips: FlipItem[] };
+  pastSprint?: { mode?: "past" | "participle"; verbs: VerbItem[]; flips: FlipItem[] };
   buildPerson?: { cards: PersonCard[]; secondsPerTurn: number; strikesToExplode: number; retellSeconds: number };
   wordSprint?: { words: WordItem[]; spell?: SpellItem[]; flips?: FlipItem[]; numbers: NumberItem[] };
   bossBattle: { name: string; hp: number; lives: number; rounds: BossRound[]; events: BossEvent[]; taunts: string[] };

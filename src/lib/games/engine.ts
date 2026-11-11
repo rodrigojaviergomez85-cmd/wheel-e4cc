@@ -7,7 +7,7 @@ export type Step =
   | { kind: "echo"; en: string; seconds: number; round?: undefined }
   | { kind: "fix"; wrong: string; right: string; hint: string; seconds: number; round?: number | undefined }
   | { kind: "ed"; verb: string; sound: "t" | "d" | "id"; seconds: number; round?: undefined }
-  | { kind: "pastform"; base: string; es: string; past: string; sound: "t" | "d" | "id" | "irregular"; example: string; seconds: number; round?: number | undefined }
+  | { kind: "pastform"; base: string; es: string; past: string; participle?: string | undefined; sound: "t" | "d" | "id" | "irregular"; example: string; seconds: number; round?: number | undefined }
   | { kind: "flip"; affirmative: string; negative: string; question: string; startTeam: TeamIdx; seconds: number; round?: undefined }
   | { kind: "retell"; prompt: string; retellAs: string; seconds: number; round?: number | undefined }
   | { kind: "word"; es: string; en: string; alt?: string[] | undefined; category: string; seconds: number; round?: number | undefined }
