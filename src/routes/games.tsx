@@ -411,6 +411,7 @@ function Arena({ pack, gd }: { pack: GamePack; gd: GameDay }) {
               onEd={(team, sound) => { if (s.phase === "done") return; doAct({ t: "ed", team, sound }); setEdFeedback({ team, ok: step.kind === "ed" && step.sound === sound }); }}
               teamNames={[s.teams[0].name, s.teams[1].name]}
               onTick={(i) => setS(personToggle(s, i))}
+              participle={pack.pastSprint?.mode === "participle"}
             />
           ) : null}
           <DropdownMenu>
